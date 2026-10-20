@@ -19,7 +19,10 @@ Ao fim da aula cada participante: (1) explica o que e token, contexto e custo; (
 | 9 | Brasil: disponibilidade do tier gratis da Gemini API **nao verificada** | Teste com uma conta brasileira antes da aula |
 | 10 | Certificado: sem criterio vira brinde | Emitido a quem enviar o site feito (link ou print). Texto honesto: "certificado de participacao", sem carga horaria oficial salvo vinculo institucional |
 | 11 | "Opus/Sonnet/Haiku" no ar nao e gratis | Claude Code real = **demo do professor** (conta propria) ou video gravado. Alunos usam o equivalente gratis. Mostrar o mapeamento 1:1 nos slides |
-| 12 | Hierarquia de 3 niveis (gerente chamar dev) depende do OpenCode permitir subagente chamar subagente | **A verificar no ensaio.** Fallback: o maestro chama gerente e dev diretamente |
+| 12 | Hierarquia de 3 niveis (gerente chamar dev) depende do OpenCode permitir subagente chamar subagente. Pesquisa: docs estaveis nao dizem; docs v2 dizem profundidade padrao = 1 | **A verificar no ensaio** (`opencode --version` + smoke test). Fallback: o maestro chama gerente e dev diretamente (editar `permission.task` do maestro) |
+| 13 | Gemini 2.5 esta restrito a quem ja o usava e o Pro nao tem plano gratis; alunos novos podem nao ter acesso | Padrao agora: `gemini-3.8-flash` (maestro/gerente) e `gemini-3.5-flash-lite` (dev). Cotas gratis nao sao publicadas: ver no AI Studio |
+| 14 | Aluno sem Claude Code **e** sem conta Google | Modo `free`: modelos gratis do OpenCode Zen (sem retencao: glm/deepseek/minimax). Nao verificado se funcionam sem login: assumir conta Zen gratis. Alternativas: OpenRouter `:free` (50 req/dia), NVIDIA NIM. Descartados: Cerebras (exige cartao), GitHub Models (encerrado 30/07/2026) |
+| 15 | Injecao de prompt: tema ausente | Bloco proprio com 3 exercicios e PDF de teste (secao 5b). Os agentes saem **sem** defesa de proposito, para o ataque funcionar |
 
 ## 3. Arquitetura
 ```
@@ -33,14 +36,17 @@ usuario -> maestro (modelo forte; so planeja/confere; sem editar)
 ```
 Roteamento por tamanho (skill `rotear-tarefa`): pequeno vai direto ao gerente/dev sem plano; medio tem plano; grande/risco tem plano + riscos + revisao. Seguranca e verificacao executavel fazem parte do fluxo, nao sao opcionais.
 
-| Papel | Claude Code (referencia) | Gratis nuvem | Gratis local |
-|---|---|---|---|
-| maestro | Opus | gemini-2.5-pro | modelo unico (qwen3-coder / gpt-oss) |
-| gerente | Sonnet | gemini-2.5-flash | idem |
-| dev | Haiku | gemini-2.5-flash-lite | idem |
+| Papel | Claude Code | Gemini gratis | Zen gratis | Local |
+|---|---|---|---|---|
+| maestro | opus | gemini-3.8-flash | deepseek-v4.1-flash-free | modelo unico (qwen3-coder / gpt-oss) |
+| gerente | sonnet | gemini-3.8-flash | glm-5.3-flash-free | idem |
+| dev | haiku | gemini-3.5-flash-lite | minimax-m3.1-flash-free | idem |
 
 ## 4. Entregaveis (este repositorio)
-- `install.ps1` / `install.sh`: detectam VRAM, escolhem nuvem ou local, instalam OpenCode (+Ollama), copiam agentes e skills com backup.
+- `install.ps1` / `install.sh`: escolhem o modo (Claude Code > GPU 12 GB+ > Gemini gratis; `AULA_MODE=free` forca Zen), instalam OpenCode (+Ollama), copiam agentes, skills e exercicios com backup.
+- `agents-claude/`: os mesmos tres papeis com `model: opus/sonnet/haiku`, para quem ja tem Claude Code.
+- `exercicios/`: PDF de teste (texto oculto), 3 exercicios, `defesa/AGENTS.md`.
+- `skills/` + `THIRD_PARTY.md`: 5 proprias e 3 de terceiros com licenca (nao incluida: hallmark, 67 KB).
 - `agents/`, `skills/`, `config/`: o time e as regras. Modelos trocaveis em um unico bloco do instalador.
 - `slides/index.html`: apresentacao (setas / espaco navegam; `F` tela cheia).
 - `certificado/`: modelo imprimivel (nome via `?nome=`), sem nomes no repositorio.
@@ -58,6 +64,9 @@ Roteamento por tamanho (skill `rotear-tarefa`): pequeno vai direto ao gerente/de
 | 110-120 | Fechamento | Mostra 2-3 sites, erros comuns, proximos passos, certificado | Envia link/print |
 
 Folga: se a instalacao estourar, o bloco "Seguranca" encolhe e vira leitura no chat.
+
+## 5b. Bloco de injecao de prompt (dentro de "Mao na massa", ~20 min)
+Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel faz o agente falar de "Tung Tung Tung Sahur" sem parar (inofensivo) > slide revela > explicacao falada: um atacante poderia pedir para ler `.env`/chaves de API > Ex3 aluno copia `defesa/AGENTS.md` e repete. Defesas em camadas: regra no AGENTS.md (ajuda, nao garante), permissoes minimas, nada de segredos no projeto, fonte confiavel, revisao humana. **Nao verificado:** se o PDF dispara em Gemini/Zen via OpenCode (o `read` anexa o PDF ao modelo; Gemini 3 extrai o texto embutido). Testar com chave real; plano B: texto oculto mais explicito ou demo no chat do Gemini.
 
 ## 6. Plano B por falha
 - Instalacao falhou: sala de ajuda em paralelo (monitor/voluntario) e continuar acompanhando pelos slides.
@@ -87,4 +96,6 @@ Folga: se a instalacao estourar, o bloco "Seguranca" encolhe e vira leitura no c
 - 2026-10-20: criado o repo `aula-agentes-ia` com agentes `maestro/gerente/dev`, skills `rotear-tarefa` e `ui-basico`, instaladores PS1/SH (sem manipular chaves), configs nuvem/local.
 - 2026-10-20: slides em HTML unico; certificado em HTML imprimivel com nome por parametro.
 - 2026-10-20: repo publicado. Instalador (modo nuvem, perfil falso) testado com OpenCode 1.19.0: config carrega, agentes `maestro/gerente/dev` reconhecidos, permissoes de `task` validas. NAO testado: chamada real a modelo, modo local, Mac/Linux.
+- 2026-10-20: adicionado bloco de injecao de prompt (slides, `exercicios/`), skills adaptadas (5 proprias, 3 de terceiros com licenca; scan manual por grep, Docker/skillspector indisponivel). Pesquisa de riscos: Gemini 2.5 restrito a quem ja usava (trocado para 3.x), Pro sem plano gratis, aninhamento de subagente nao confirmado, Zen free como fallback.
+- 2026-10-20: instaladores com 4 modos (claude/cloud/free/local) e copia de exercicios. Sintaxe validada; execucao dos modos claude/free/local NAO testada.
 - Pendente: ensaio real em maquinas limpas, confirmar IDs de modelo e hierarquia de 3 niveis, gravar demo.

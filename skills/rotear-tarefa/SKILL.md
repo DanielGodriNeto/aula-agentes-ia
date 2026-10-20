@@ -1,17 +1,22 @@
 ---
 name: rotear-tarefa
-description: Decide o tamanho de uma tarefa de programacao (pequena, media, grande) e quem deve executa-la, para nao gastar um modelo caro em trabalho simples. Use antes de delegar qualquer pedido de construir ou alterar codigo.
+description: Decide o tamanho de uma tarefa de programacao (R0 a R4) e quem deve executa-la, para nao gastar um modelo caro em trabalho simples. Use antes de delegar qualquer pedido de construir, alterar ou investigar codigo.
 ---
 
-# Rotear tarefa
+# Rotear tarefa (versao enxuta do workflow R0-R4)
 
-| Tamanho | Exemplo | Quem faz | Verificacao |
+Passo 0, sempre: confira a premissa em uma linha. Se o pedido for falho, arriscado ou claramente pior que uma alternativa, diga isso em 2-4 linhas e espere a resposta antes de gastar tokens.
+
+| Rota | Quando | Quem faz | Verificacao |
 |---|---|---|---|
-| Pequeno | trocar cor de botao, corrigir typo | gerente sozinho (ou dev) | abrir o arquivo e conferir |
-| Medio | pagina nova, funcao com 2-3 arquivos | maestro planeja, gerente quebra, dev executa | teste ou abrir no navegador |
-| Grande / risco | login, pagamento, dados pessoais, apagar arquivos | plano + riscos, dev executa, revisao final | teste + revisao de seguranca |
+| R0 | 1 arquivo, ~20 linhas, mudanca obvia (cor de botao, typo) | gerente ou dev, sem plano | abrir e conferir |
+| R1 | construir/melhorar em codigo que voce consegue ler | plano de 5 linhas que nomeia a checagem; um escritor (dev) | rodar a checagem |
+| R2 | codigo desconhecido ou incerto | ler primeiro (gerente), plano curto, depois como R1 | checagem + revisao se mexeu em varios arquivos |
+| R3 | pesquisa, investigacao, "existe algo melhor?" | pesquisar, relatorio com pontuacao, PARAR ate o usuario aprovar | n/a |
+| R4 | login/sessao, segredos, pagamento, dados pessoais, apagar dados, producao | plano + riscos + build + revisao de seguranca por um agente que nao escreveu o codigo | checagem + revisao |
 
 Regras:
-- Na duvida entre dois tamanhos, escolha o maior.
-- Risco = a mudanca em si adiciona login, segredos, dados pessoais, formulario com entrada de usuario ou apaga dados.
-- Uma tarefa so e "pronta" quando uma checagem executavel foi rodada. "Parece certo" nao conta.
+- Risco conta quando a mudanca em si adiciona ou altera aquele comportamento, nao quando o codigo vizinho faz isso.
+- Entrada de usuario, banco, rede, arquivos e dependencias novas: pelo menos uma passada de seguranca.
+- Na duvida entre duas rotas, escolha a maior. Se a checagem falhar duas vezes, suba uma rota.
+- "Pronto" so vale depois de uma checagem executavel. "Parece certo" nao conta. Quem escreveu nunca revisa o proprio codigo.
