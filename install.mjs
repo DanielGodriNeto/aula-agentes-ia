@@ -16,7 +16,7 @@ const IS_MAC = process.platform === 'darwin';
 const TTY = !!process.stdin.isTTY && !!process.stdout.isTTY;
 
 // ---------- MODELOS (unico lugar para trocar; veja config/modelos.md) ----------
-const GEMINI = { orch: 'google/gemini-3.8-flash' };
+const GEMINI = { orch: process.env.AULA_GEMINI_MODEL || 'google/gemini-3.5-flash-lite' }; // barato por padrao; troque por google/gemini-3.8-flash para mais forca
 const ZEN = { orch: 'opencode/deepseek-v4.1-flash-free', mgr: 'opencode/glm-5.3-flash-free', dev: 'opencode/minimax-m3.1-flash-free' };
 // -------------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ async function main() {
 
   let gemini = false, geminiKey = '';
   if (cloud) {
-    gemini = await yesNo('AULA_GEMINI', 'Usar o Gemini (Google) tambem? Bom: modelo mais forte no maestro. Ruim: precisa de conta Google e chave; no plano gratis o Google pode treinar com seus prompts.', false);
+    gemini = await yesNo('AULA_GEMINI', 'Usar o Gemini (Google) tambem? Bom: modelo barato e rapido no maestro. Ruim: precisa de conta Google e chave; no plano gratis o Google pode treinar com seus prompts.', false);
     if (gemini) {
       geminiKey = await askGeminiKey();
       gemini = Boolean(geminiKey);

@@ -38,7 +38,7 @@ Roteamento por tamanho (skill `rotear-tarefa`): pequeno vai direto ao gerente/de
 
 | Papel | Claude Code | Gemini gratis | Zen gratis | Local |
 |---|---|---|---|---|
-| maestro | opus | gemini-3.8-flash | deepseek-v4.1-flash-free | um modelo por faixa de VRAM (ornith 9B ... muse-glimmer 30B; ver config/modelos.md) |
+| maestro | opus | gemini-3.5-flash-lite | deepseek-v4.1-flash-free | um modelo por faixa de VRAM (ornith 9B ... muse-glimmer 30B; ver config/modelos.md) |
 | gerente | sonnet | gemini-3.8-flash | glm-5.3-flash-free | idem |
 | dev | haiku | gemini-3.5-flash-lite | minimax-m3.1-flash-free | idem |
 

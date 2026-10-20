@@ -4,8 +4,8 @@ Os IDs ficam nos `install.mjs` (bloco "MODELOS" e função `localModels`). Free 
 
 | Papel | Claude Code (se voce tem) | Gemini gratis (chave Google) | Gratis sem Google (OpenCode Zen) |
 |---|---|---|---|
-| maestro | opus | `google/gemini-3.8-flash` | `opencode/deepseek-v4.1-flash-free` |
-| gerente | sonnet | `google/gemini-3.8-flash` | `opencode/glm-5.3-flash-free` |
+| maestro | opus | `google/gemini-3.5-flash-lite` | `opencode/deepseek-v4.1-flash-free` |
+| gerente | sonnet | `google/gemini-3.5-flash-lite` | `opencode/glm-5.3-flash-free` |
 | dev | haiku | `google/gemini-3.5-flash-lite` | `opencode/minimax-m3.1-flash-free` |
 
 Os Gemini 2.5 ficaram restritos a quem ja os usava e o Pro nao tem plano gratis, por isso o 3.x. Os modelos Zen listados nao retem dados; a lista muda: confira com `opencode models opencode`. Local (GPU):
