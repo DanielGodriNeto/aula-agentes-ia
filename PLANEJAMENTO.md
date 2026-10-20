@@ -86,4 +86,5 @@ Folga: se a instalacao estourar, o bloco "Seguranca" encolhe e vira leitura no c
 - 2026-10-20: escolhido OpenCode (MIT, modelo por subagente, le skills). Gemini CLI descartado (fim do gratis em 2026-06-18).
 - 2026-10-20: criado o repo `aula-agentes-ia` com agentes `maestro/gerente/dev`, skills `rotear-tarefa` e `ui-basico`, instaladores PS1/SH (sem manipular chaves), configs nuvem/local.
 - 2026-10-20: slides em HTML unico; certificado em HTML imprimivel com nome por parametro.
+- 2026-10-20: repo publicado. Instalador (modo nuvem, perfil falso) testado com OpenCode 1.19.0: config carrega, agentes `maestro/gerente/dev` reconhecidos, permissoes de `task` validas. NAO testado: chamada real a modelo, modo local, Mac/Linux.
 - Pendente: ensaio real em maquinas limpas, confirmar IDs de modelo e hierarquia de 3 niveis, gravar demo.
