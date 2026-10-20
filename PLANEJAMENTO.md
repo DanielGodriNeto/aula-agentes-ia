@@ -43,7 +43,7 @@ Roteamento por tamanho (skill `rotear-tarefa`): pequeno vai direto ao gerente/de
 | dev | haiku | gemini-3.5-flash-lite | minimax-m3.1-flash-free | idem |
 
 ## 4. Entregaveis (este repositorio)
-- `install.ps1` / `install.sh`: escolhem o modo (pergunta: Claude Code, Zen, Gemini, Zen+Gemini ou local por VRAM; `AULA_MODE=` pula a pergunta), instalam OpenCode (+Ollama), copiam agentes, skills e exercicios com backup.
+- `install.mjs` (Node; `install.ps1`/`install.sh` so o executam): perguntas sim/nao e caixas (Claude Code/Codex, nuvem e/ou PC, Gemini, pasta de projetos, exercicios, personalizar), instala OpenCode (+Ollama), agentes, skills, workflow AGENTS.md e COMO-USAR.md, com backup.
 - `agents-claude/`: os mesmos tres papeis com `model: opus/sonnet/haiku`, para quem ja tem Claude Code.
 - `exercicios/`: PDF de teste (texto oculto), 3 exercicios, `defesa/AGENTS.md`.
 - `skills/` + `THIRD_PARTY.md`: 5 proprias e 3 de terceiros com licenca (nao incluida: hallmark, 67 KB).
@@ -107,3 +107,8 @@ Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel 
 - Local real: RX 7600 (8 GB, AMD) detectada pelo registro (nvidia-smi nao existe); `ornith-1.5:9b` baixado e rodando via derivado `aula-ornith-1.5-9b`. Contexto padrao do Ollama (4k) estoura (prompt do OpenCode ~12k tokens) -> embutido num Modelfile (`num_ctx`). Tarefa simples levou ~5 min e o modelo tentou usar o navegador sem necessidade.
 - Navegacao: Chrome instalado; chrome-devtools MCP abriu example.com e leu o titulo com glm-5.3-flash-free.
 - NAO testado: chave Gemini real (sem chave), Mac/Linux, tiers 12/16/24/32 GB reais (so geracao de config com ollama simulado), 429 do Zen com sala cheia.
+
+### 2026-10-20 (instalador v2)
+- Instalador reescrito em Node unico (`install.mjs`) com o fluxo aprovado: assinaturas (Claude/Codex), onde rodar (nuvem e/ou PC, ambos marcaveis), Gemini opcional com chave oculta (validada com 1 chamada, guardada em auth.json do OpenCode), pasta de projetos, exercicios, personalizar (skills extras, web, permissoes em 3 niveis, compartilhar). Respostas por `AULA_*`.
+- Novos: `instrucoes/AGENTS.md` (workflow generico com secao anti injecao de prompt), `COMO-USAR.md`, skills `ajuda-aula` e `configurar-aula`, agente `configurador`. Codex: AGENTS.md, skills em `~/.agents/skills`, subagentes `.toml`; `config.toml` nunca e alterado (so imprime as linhas). Fonte: docs oficiais do Codex (via learn.chatgpt.com).
+- Testado: combinacoes por variavel (nuvem, Gemini+extras+web+balanced, nuvem+PC 32 GB, Claude+Codex+free) em HOME falso; OpenCode 1.19.0 lista os agentes e conecta o MCP; bloco idempotente; bootstrappers sh e ps1 locais. NAO testado: digitacao oculta da chave em terminal real, chave Gemini real, `codex --version`/deteccao em maquina com Codex, formato de auth.json em uso real, Mac/Linux, one-liner publicado.

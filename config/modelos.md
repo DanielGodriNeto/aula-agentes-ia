@@ -1,6 +1,6 @@
 # Modelos usados (um lugar so para trocar)
 
-Os IDs ficam nos scripts `install.ps1` / `install.sh` (bloco "MODELOS"). Free tiers mudam toda semana: **teste na vespera da aula**.
+Os IDs ficam nos `install.mjs` (bloco "MODELOS" e função `localModels`). Free tiers mudam toda semana: **teste na vespera da aula**.
 
 | Papel | Claude Code (se voce tem) | Gemini gratis (chave Google) | Gratis sem Google (OpenCode Zen) |
 |---|---|---|---|
