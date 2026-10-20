@@ -21,7 +21,7 @@ Ao fim da aula cada participante: (1) explica o que e token, contexto e custo; (
 | 11 | "Opus/Sonnet/Haiku" no ar nao e gratis | Claude Code real = **demo do professor** (conta propria) ou video gravado. Alunos usam o equivalente gratis. Mostrar o mapeamento 1:1 nos slides |
 | 12 | Hierarquia de 3 niveis (gerente chamar dev) depende do OpenCode permitir subagente chamar subagente. Pesquisa: docs estaveis nao dizem; docs v2 dizem profundidade padrao = 1 | **A verificar no ensaio** (`opencode --version` + smoke test). Fallback: o maestro chama gerente e dev diretamente (editar `permission.task` do maestro) |
 | 13 | Gemini 2.5 esta restrito a quem ja o usava e o Pro nao tem plano gratis; alunos novos podem nao ter acesso | Padrao agora: `gemini-3.8-flash` (maestro/gerente) e `gemini-3.5-flash-lite` (dev). Cotas gratis nao sao publicadas: ver no AI Studio |
-| 14 | Aluno sem Claude Code **e** sem conta Google | Modo `free`: modelos gratis do OpenCode Zen (sem retencao: glm/deepseek/minimax). Nao verificado se funcionam sem login: assumir conta Zen gratis. Alternativas: OpenRouter `:free` (50 req/dia), NVIDIA NIM. Descartados: Cerebras (exige cartao), GitHub Models (encerrado 30/07/2026) |
+| 14 | Aluno sem Claude Code **e** sem conta Google | Modo `free` (agora o padrao): modelos gratis do OpenCode Zen (sem retencao: glm/deepseek/minimax). **Testado 2026-10-20: funcionam sem login e sem chave.** Risco: limites nao publicados, 100 alunos no mesmo IP podem tomar 429 (piloto com 30 alunos). Alternativas: OpenRouter `:free` (50 req/dia), NVIDIA NIM. Descartados: Cerebras (exige cartao), GitHub Models (encerrado 30/07/2026) |
 | 15 | Injecao de prompt: tema ausente | Bloco proprio com 3 exercicios e PDF de teste (secao 5b). Os agentes saem **sem** defesa de proposito, para o ataque funcionar |
 
 ## 3. Arquitetura
@@ -66,7 +66,7 @@ Roteamento por tamanho (skill `rotear-tarefa`): pequeno vai direto ao gerente/de
 Folga: se a instalacao estourar, o bloco "Seguranca" encolhe e vira leitura no chat.
 
 ## 5b. Bloco de injecao de prompt (dentro de "Mao na massa", ~20 min)
-Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel faz o agente falar de "Tung Tung Tung Sahur" sem parar (inofensivo) > slide revela > explicacao falada: um atacante poderia pedir para ler `.env`/chaves de API > Ex3 aluno copia `defesa/AGENTS.md` e repete. Defesas em camadas: regra no AGENTS.md (ajuda, nao garante), permissoes minimas, nada de segredos no projeto, fonte confiavel, revisao humana. **Nao verificado:** se o PDF dispara em Gemini/Zen via OpenCode (o `read` anexa o PDF ao modelo; Gemini 3 extrai o texto embutido). Testar com chave real; plano B: texto oculto mais explicito ou demo no chat do Gemini.
+Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel faz o agente falar de "Tung Tung Tung Sahur" sem parar (inofensivo) > slide revela > explicacao falada: um atacante poderia pedir para ler `.env`/chaves de API > Ex3 aluno copia `defesa/AGENTS.md` e repete. **Teste real (2026-10-20):** glm-5.3, deepseek-v4.1, minimax-m3.1, mimo, big-pickle e nemotron-ultra detectaram o texto oculto e IGNORARAM (alguns avisaram o usuario); so `nemotron-3.5-lightning-free` (o menor) obedeceu e repetiu "Tung Tung Tung Sahur". Por isso o Ex2 usa o modelo pequeno e depois compara com um maior; os modelos de texto do Zen nao leem PDF, entao o Ex2 usa `briefing-site.html` (o PDF fica para Gemini/Claude). Defesas em camadas: regra no AGENTS.md (ajuda, nao garante), permissoes minimas, nada de segredos no projeto, fonte confiavel, revisao humana. **Nao verificado:** se o PDF dispara em Gemini/Zen via OpenCode (o `read` anexa o PDF ao modelo; Gemini 3 extrai o texto embutido). Testar com chave real; plano B: texto oculto mais explicito ou demo no chat do Gemini.
 
 ## 6. Plano B por falha
 - Instalacao falhou: sala de ajuda em paralelo (monitor/voluntario) e continuar acompanhando pelos slides.
@@ -77,7 +77,7 @@ Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel 
 
 ## 7. Checklist pre-aula (vespera)
 - [ ] Instalador testado em: Windows 11 limpo, Mac, Linux, maquina sem GPU, maquina com GPU 12 GB+.
-- [ ] Tier gratis do Gemini testado com conta brasileira; anotar cota real (RPM/RPD).
+- [ ] (opcional) Tier gratis do Gemini testado com conta brasileira; anotar cota real (RPM/RPD).
 - [ ] Confirmar IDs dos modelos em `config/modelos.md` (mudam rapido).
 - [ ] Ensaio da hierarquia maestro > gerente > dev (item 12 da critica).
 - [ ] Gravar a demo de reserva; testar compartilhamento de tela.
@@ -98,4 +98,5 @@ Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel 
 - 2026-10-20: repo publicado. Instalador (modo nuvem, perfil falso) testado com OpenCode 1.19.0: config carrega, agentes `maestro/gerente/dev` reconhecidos, permissoes de `task` validas. NAO testado: chamada real a modelo, modo local, Mac/Linux.
 - 2026-10-20: adicionado bloco de injecao de prompt (slides, `exercicios/`), skills adaptadas (5 proprias, 3 de terceiros com licenca; scan manual por grep, Docker/skillspector indisponivel). Pesquisa de riscos: Gemini 2.5 restrito a quem ja usava (trocado para 3.x), Pro sem plano gratis, aninhamento de subagente nao confirmado, Zen free como fallback.
 - 2026-10-20: instaladores com 4 modos (claude/cloud/free/local) e copia de exercicios. Sintaxe validada; execucao dos modos claude/free/local NAO testada.
+- 2026-10-20: testes reais com OpenCode 1.19.0 e Zen sem login: os 3 modelos do time respondem; maestro->gerente delega e o site e criado (gerente->dev nao confirmado; bash do gerente e recusado em `opencode run` nao interativo); MCP `chrome-devtools` conecta (precisa do Chrome instalado; sem ele o modelo cai no webfetch). Padrao de quem nao tem Claude Code passou a ser Zen free (sem retencao, sem login) em vez de Gemini. `skills-extras/` opt-in com `AULA_EXTRAS=1`. Pesquisa completa: `docs/modelos-gratis.md`.
 - Pendente: ensaio real em maquinas limpas, confirmar IDs de modelo e hierarquia de 3 niveis, gravar demo.

@@ -3,7 +3,7 @@
 # Uso:  curl -fsSL https://raw.githubusercontent.com/DanielGodriNeto/aula-agentes-ia/main/install.sh | bash
 # Modos: claude (voce ja tem Claude Code) | cloud (Gemini gratis) | free (OpenCode Zen, sem Google) | local (GPU)
 # Escolher:  curl -fsSL .../install.sh | AULA_MODE=free bash     (REF=main por padrao)
-# Leia antes de rodar: nao pede nem guarda chave. Escolhe o modo (Claude Code > GPU 12 GB+ > Gemini gratis),
+# Leia antes de rodar: nao pede nem guarda chave. Escolhe o modo (Claude Code > GPU 12 GB+ > modelos gratis do OpenCode Zen),
 # instala OpenCode (e Ollama no modo local) e copia agentes, skills e exercicios (com backup).
 set -euo pipefail
 MODE="${AULA_MODE:-${MODE:-auto}}"; REF="${REF:-main}"; REPO="DanielGodriNeto/aula-agentes-ia"
@@ -32,7 +32,7 @@ VRAM=$(vram_gb); say "VRAM/memoria util detectada: ${VRAM} GB (0 = nenhuma)."
 if [ "$MODE" = auto ]; then
   if command -v claude >/dev/null 2>&1; then MODE=claude
   elif [ "$VRAM" -ge 12 ]; then MODE=local
-  else MODE=cloud; fi
+  else MODE=free; fi
 fi
 case "$MODE" in claude|cloud|free|local) ;; *) echo "AULA_MODE invalido: $MODE"; exit 1;; esac
 say "Modo escolhido: $MODE"
@@ -46,6 +46,7 @@ esac
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 curl -fsSL "https://github.com/$REPO/archive/$REF.tar.gz" | tar -xz -C "$TMP" --strip-components=1
 EX="$HOME/aula-agentes-ia-exercicios"; mkdir -p "$EX"; cp -r "$TMP"/exercicios/. "$EX/"
+EXTRAS="${AULA_EXTRAS:-0}"   # AULA_EXTRAS=1 instala tambem skills-extras (scrapling, break-ui, animate...)
 
 if [ "$MODE" = claude ]; then
   CD="$HOME/.claude"; mkdir -p "$CD/agents" "$CD/skills"
@@ -53,6 +54,7 @@ if [ "$MODE" = claude ]; then
     d="$CD/agents/$(basename "$f")"; [ -f "$d" ] && cp "$d" "$d.bak"; cp "$f" "$d"
   done
   cp -r "$TMP"/skills/* "$CD/skills/"
+  [ "$EXTRAS" = 1 ] && cp -r "$TMP"/skills-extras/* "$CD/skills/"
   say "Pronto (modo Claude Code). Numa pasta de projeto rode: claude   (/agents lista maestro, gerente, dev)"
   say "Exercicios em: $EX"; exit 0
 fi
@@ -75,6 +77,7 @@ fill() {
 }
 for f in "$TMP"/agents/*.md; do fill "$f" > "$DEST/agents/$(basename "$f")"; done
 cp -r "$TMP"/skills/* "$DEST/skills/"
+[ "$EXTRAS" = 1 ] && cp -r "$TMP"/skills-extras/* "$DEST/skills/"
 CFG=$([ "$MODE" = local ] && echo local || echo cloud)   # free e cloud usam o mesmo JSON
 fill "$TMP/config/opencode.$CFG.json" > "$DEST/opencode.json"
 
@@ -84,10 +87,10 @@ case "$MODE" in
     echo "  1) Crie uma chave gratis em https://aistudio.google.com/apikey"
     echo "  2) Rode:  opencode auth login   (escolha Google e cole a chave)"
     echo "  AVISO: no plano gratis o Google pode usar seus prompts para treinar. Nao use codigo privado."
-    echo "  Sem conta Google? Rode de novo com AULA_MODE=free.";;
+    echo "  Preferiu nao usar Google? Rode de novo com AULA_MODE=free.";;
   free)
-    echo "  1) Rode:  opencode auth login   (escolha OpenCode Zen; crie a conta gratis se pedir)"
-    echo "  2) Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)";;
+    echo "  Nao precisa de chave nem login: os modelos -free do OpenCode Zen funcionam direto (nos testes, sem conta)."
+    echo "  Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)";;
   local)
     echo "  Rode: OLLAMA_CONTEXT_LENGTH=65536 ollama serve   (contexto minimo de 64k)";;
 esac

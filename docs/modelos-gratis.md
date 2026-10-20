@@ -1,0 +1,36 @@
+# Free LLMs for OpenCode, class of 30-100 students in Brazil (researched 2026-10-20)
+
+V = verified on an official/primary page I fetched. U = unverified (secondary blog, conflicting, or not stated).
+
+## Ranked table
+| # | Provider | OpenCode model id | Free limits | Card? | Trains on data? | Tool-calling / quality | Source |
+|---|---|---|---|---|---|---|---|
+| 1 | OpenCode Zen (free models) | opencode/deepseek-v4.1-flash-free, opencode/glm-5.3-flash-free, opencode/minimax-m3.1-flash-free, opencode/longcat-2.5-preview-free (zero-retention ones) | No limits published (V: page silent). Third-party: per-IP cap, 429 FreeUsageLimitError (U). "Limited time" (V). | No for keyless use (U: only a third-party guide says no login; official page says sign in + billing for an API key and is silent on free models) | V: No/zero-retention for glm-5.3-flash, deepseek-v4.1-flash, minimax-m3.1-flash, longcat. YES (may train) for big-pickle, mimo-*, exo-free, ll-alpha. Nemotron: trial, logged. | AA: DeepSeek V4.1 Flash Intelligence 40, Terminal-Bench 69%; GLM-5.3-Flash 42, TB 60% (V from AA page). No coding index found for MiniMax M3.1 / Nemotron. | https://opencode.ai/docs/zen/ ; https://artificialanalysis.ai/models/comparisons/deepseek-v4-1-flash-vs-glm-5-3-flash ; https://learnopencode.com/en/1-start/04a-free-models |
+| 2 | NVIDIA build.nvidia.com | nvidia/<model> (provider id `nvidia`, NVIDIA_API_KEY) e.g. DeepSeek V4 Flash/Pro, MiniMax M2.7, GLM 5.x (model list U) | ~40 RPM per account, no official raise (forum). Per-student account works. | No (U; Developer Program signup, phone verification not confirmed) | U: reports that free inputs/outputs are logged, may be used; "trial only". | Good open models, but latency slow on free tier (U). | https://opencode.ai/docs/providers/ ; https://forums.developer.nvidia.com/t/is-nim-free/369368 |
+| 3 | Google Gemini API (AI Studio key) | google/gemini-3.x-flash family (OpenCode google provider: not on docs page, U) | Free of charge in "all available regions" (V). Free models V: 3.8 Flash, 3.6 Flash, 3.5 Flash-Lite, 3.1 Flash-Lite, 3 Flash Preview, 2.5 Pro/Flash/Flash-Lite, Gemma 4. NOT free: 3.1 Pro Preview, Gemini 4 Argon. Per-model RPM/RPD not published; only visible in AI Studio per project (V). Blogs say 5-15 RPM, 20-1500 RPD (U, conflicting). | No | V: Yes, free tier content "used to improve products" (outside EU/UK/EEA per OpenRouter blog, U) | Strong tool calling, 1M context (U). Low daily caps risk for agent loops. | https://ai.google.dev/gemini-api/docs/pricing ; https://ai.google.dev/gemini-api/docs/rate-limits |
+| 4 | OpenRouter :free | openrouter/minimax/minimax-m3.1-flash:free (1M ctx), openrouter/nvidia/nemotron-3.5-super-vl:free (1M, tools), openrouter/xingchen-agi/xing4.0-29b-a4b:free (262K, tools) (V list was partial) | V: 20 RPM; 50 req/day (under $10 purchased); 1000/day after $10 purchase. Shared across all :free models. | No for 50/day; $10 for 1000/day | Varies by provider, per-model (U). | 50/day is too low for agentic coding. Only workable as fallback. | https://openrouter.ai/docs/api-reference/limits ; https://openrouter.ai/models?max_price=0&categories=programming |
+| 5 | Groq | groq/openai/gpt-oss-120b, groq/qwen/qwen3.8-27b | V (Developer plan table, free-plan numbers on their settings page): 30 RPM, 1K RPD, 8K TPM, 200K TPD. 8K TPM is too small for agent context. | No (U) | No (U, blog) | gpt-oss-120b tool calling ok (U); TPM kills multi-step agents. | https://console.groq.com/docs/rate-limits |
+| 6 | Cerebras | cerebras/gpt-oss-120b, cerebras/qwen-3.8-27b | V: $5 credit, 30 days, REQUIRES verified payment method; 5 RPM, 1M TPD. No permanent free tier. | YES | No (U) | Fast, but card needed. Excluded for students. | https://inference-docs.cerebras.ai/support/rate-limits |
+| 7 | Ollama Cloud | ollama cloud models (`gemma4:cloud` etc.) | V: starter monthly usage on a smaller model set, 1 concurrent request. Amounts not published. | Not stated | V: not used to train | Unknown quality for agents. 1 concurrent is OK per student. | https://docs.ollama.com/cloud ; https://ollama.com/pricing |
+| 8 | GitHub Copilot Student | Copilot provider via /connect device login | V: free for verified students; Auto model only; agent mode, MCP included; AI Credits allowance amount not stated. Single blog claims signups paused April 2026 (U). Brazilian students need GitHub Education verification (ID/school email). | No | Not verified | Good, but Auto model only, and OpenCode may only expose some models (U). | https://docs.github.com/en/copilot/get-started/plans |
+| 9 | Mistral Experiment tier | mistral/codestral... | ~1B tokens/month (U) | No | YES for Experiment (U, blog) | Fine for chat, weaker agent | https://openrouter.ai/blog/tutorials/free-llm-apis-compared/ |
+| 10 | Cloudflare Workers AI | n/a | V: 10,000 neurons/day, resets 00:00 UTC. Kimi K2.7 Code needs paid billing (V). qwen2.5-coder-32b not gated. | No (page silent) | not checked | Small context, weak for agents | https://developers.cloudflare.com/workers-ai/platform/pricing/ |
+| - | Google AI Plus student | n/a | V: Brazil, free 1 year until 31 Dec 2026, 18+ university students. Needs a payment method; auto-bills R$24,99/month. NO API / CLI / Code Assist mentioned. Not for OpenCode. | YES | n/a | n/a | https://gemini.google/students/ |
+
+SambaNova: $5 trial with card (U, blog). Not checked on primary source. Claude student plan: not researched (no evidence gathered).
+
+## Benchmarks (U, mixed harnesses, none dated Oct 2026)
+SWE-bench Verified: Kimi K2.6 80.2, MiniMax M2.5 80.2, DeepSeek-V4-Flash-Max 79.0 (steel.dev); GLM-5 72.8-77.8; Qwen3 Coder 480B 69.6. Sources disagree. Benchmark saturating. LMArena and Aider: not found/checked.
+https://leaderboard.steel.dev/leaderboards/swe-bench-verified.md ; https://artificialanalysis.ai/models/comparisons/deepseek-v4-1-flash-vs-glm-5-3-flash
+
+## Top-5 for 30-100 students
+1. OpenCode Zen free zero-retention models (deepseek-v4.1-flash-free, glm-5.3-flash-free, minimax-m3.1-flash-free): zero setup, no card, privacy-OK. Risk: limited-time, unpublished per-IP limits; 100 students on one school NAT may hit 429.
+2. NVIDIA build.nvidia.com: per-student key, 40 RPM, no card. Risk: slow, logging/training terms U.
+3. Gemini API (AI Studio key per student, Flash model): reliable tool calling, 1M ctx. Risk: low unpublished daily caps, free data used for training (tell students: no personal data/secrets). Under-18 students may be blocked from AI Studio (U).
+4. GitHub Copilot Student (those who verify): best quality, no card. Risk: Auto model only, verification friction, signups possibly paused (U).
+5. OpenRouter :free, as fallback only (50/day). Alternatively Ollama Cloud (1 concurrent, quota unknown).
+
+Excluded: Cerebras (card), Google AI Plus (card, no API), Groq (8K TPM breaks agent loops).
+
+## Recommendation
+Primary: Zen free zero-retention models, with NVIDIA key as per-student fallback and Gemini key as third. Reversible (config only). Main risk: free list is "limited time" and per-IP limits unpublished; test with a 30-person pilot on the school network before class. Confirm keyless operation yourself: `opencode models` on a fresh install with no `/connect`.

@@ -3,7 +3,7 @@
 # Modos: claude (voce ja tem Claude Code) | cloud (Gemini gratis) | free (OpenCode Zen, sem Google) | local (GPU)
 # Com iex nao da para passar parametro: antes do comando rode  $env:AULA_MODE='free'  (ou cloud/local/claude).
 # Leia antes de rodar: este script nao pede nem guarda nenhuma chave. Ele so
-#   1) escolhe o modo (Claude Code > placa NVIDIA 12 GB+ > Gemini gratis),
+#   1) escolhe o modo (Claude Code > placa NVIDIA 12 GB+ > modelos gratis do OpenCode Zen),
 #   2) instala o OpenCode (e o Ollama no modo local), a menos que o modo seja claude,
 #   3) copia agentes e skills (com backup do que existir) e os exercicios para ~/aula-agentes-ia-exercicios.
 param(
@@ -41,7 +41,7 @@ function Install-Winget($id, $name) {
 $vram = Get-VramGB
 Say "Placa NVIDIA detectada: $vram GB de VRAM (0 = nenhuma)."
 if ($Mode -eq 'auto') {
-    $Mode = if (Get-Command claude -ErrorAction SilentlyContinue) { 'claude' } elseif ($vram -ge 12) { 'local' } else { 'cloud' }
+    $Mode = if (Get-Command claude -ErrorAction SilentlyContinue) { 'claude' } elseif ($vram -ge 12) { 'local' } else { 'free' }
 }
 Say "Modo escolhido: $Mode"
 if ($Mode -eq 'local') {
@@ -58,6 +58,7 @@ $src = (Get-ChildItem $tmp -Directory | Select-Object -First 1).FullName
 $ex = Join-Path $HOME 'aula-agentes-ia-exercicios'
 New-Item -ItemType Directory -Force $ex | Out-Null
 Copy-Item (Join-Path $src 'exercicios\*') $ex -Recurse -Force
+$extras = ($env:AULA_EXTRAS -eq '1')   # AULA_EXTRAS=1 instala tambem skills-extras (scrapling, break-ui, animate...)
 
 # 3a. Claude Code ja instalado: opus/sonnet/haiku reais, sem OpenCode
 if ($Mode -eq 'claude') {
@@ -69,6 +70,7 @@ if ($Mode -eq 'claude') {
         Copy-Item $f.FullName $d -Force
     }
     Copy-Item (Join-Path $src 'skills\*') (Join-Path $cd 'skills') -Recurse -Force
+    if ($extras) { Copy-Item (Join-Path $src 'skills-extras\*') (Join-Path $cd 'skills') -Recurse -Force }
     Remove-Item $tmp -Recurse -Force
     Say 'Pronto (modo Claude Code). Numa pasta de projeto rode: claude   (o comando /agents lista maestro, gerente, dev)'
     Say "Exercicios em: $ex"
@@ -106,6 +108,7 @@ foreach ($f in Get-ChildItem "$src\agents\*.md") {
     Set-Content "$dest\agents\$($f.Name)" (Fill (Get-Content $f.FullName -Raw)) -Encoding UTF8
 }
 Copy-Item "$src\skills\*" "$dest\skills" -Recurse -Force
+if ($extras) { Copy-Item "$src\skills-extras\*" "$dest\skills" -Recurse -Force }
 $cfg = if ($Mode -eq 'local') { 'local' } else { 'cloud' }   # free e cloud usam o mesmo JSON (so muda o modelo)
 Set-Content "$dest\opencode.json" (Fill (Get-Content "$src\config\opencode.$cfg.json" -Raw)) -Encoding UTF8
 Remove-Item $tmp -Recurse -Force
@@ -116,10 +119,10 @@ if ($Mode -eq 'cloud') {
     Write-Host '  1) Crie uma chave gratis em https://aistudio.google.com/apikey'
     Write-Host '  2) Rode:  opencode auth login   (escolha Google e cole a chave)'
     Write-Host '  AVISO: no plano gratis o Google pode usar seus prompts para treinar. Nao use codigo privado.'
-    Write-Host '  Sem conta Google? Rode de novo com  $env:AULA_MODE=''free''  antes do comando.'
+    Write-Host '  Preferiu nao usar Google? Rode de novo com  $env:AULA_MODE=''free''  antes do comando.'
 } elseif ($Mode -eq 'free') {
-    Write-Host '  1) Rode:  opencode auth login   (escolha OpenCode Zen; crie a conta gratis se pedir)'
-    Write-Host '  2) Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)'
+    Write-Host '  Nao precisa de chave nem login: os modelos "-free" do OpenCode Zen funcionam direto (nos testes, sem conta).'
+    Write-Host '  Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)'
 } else {
     Write-Host '  Reabra o terminal (para o OLLAMA_CONTEXT_LENGTH valer) e rode: ollama serve'
 }

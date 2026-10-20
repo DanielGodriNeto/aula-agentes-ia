@@ -10,4 +10,6 @@ Cada uma pertence ao seu autor; a licença segue dentro da pasta da skill. Antes
 
 Não incluída por peso (SKILL.md de ~67 KB, pesado para cota grátis): `hallmark` (https://github.com/Nutlope/hallmark, MIT). Para usar: `git clone` e copie `skills/hallmark` para `~/.config/opencode/skills/`.
 
-Skills próprias (MIT): `rotear-tarefa`, `ui-basico`, `feature-assessment`, `repo-howto`, `readme-design`.
+Skills próprias (MIT): `rotear-tarefa`, `ui-basico`, `feature-assessment`, `repo-howto`, `readme-design`, `handoff`, `humanizer`, `grill-me`, `project-map` (as quatro últimas vêm do conjunto pessoal do autor; confira a origem antes de redistribuir).
+
+Em `skills-extras/` (instalação opcional com `AULA_EXTRAS=1`): `scrapling-official` (BSD-3-Clause, https://github.com/D4Vinci/Scrapling, precisa de Python + `pip install scrapling` e navegadores; só scraping autorizado, sempre `--ai-targeted`), `break-ui` e `animate` (Emil Kowalski, MIT), `diagnosing-bugs` (Matt Pocock, MIT), `verification-loop`.

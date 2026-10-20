@@ -6,8 +6,29 @@
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (local)",
-      "options": { "baseURL": "http://localhost:11434/v1" },
-      "models": { "{{LOCAL_NAME}}": { "name": "{{LOCAL_NAME}}", "limit": { "context": 65536, "output": 8192 } } }
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "{{LOCAL_NAME}}": {
+          "name": "{{LOCAL_NAME}}",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ],
+      "enabled": true
     }
   }
 }
