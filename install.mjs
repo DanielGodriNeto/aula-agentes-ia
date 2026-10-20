@@ -49,11 +49,7 @@ const copyDirs = (from, to, only) => {
 };
 
 // ---------- perguntas ----------
-let rl, muted = false;
-if (TTY) {
-  rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  rl._writeToOutput = (s) => { if (!muted) process.stdout.write(s); };
-}
+const rl = TTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : undefined;
 const question = (q) => new Promise((res) => rl.question(q, res));
 
 async function yesNo(env, label, def) {
@@ -92,13 +88,9 @@ async function textQ(env, prompt, def) {
   const a = (await question(`${prompt} (Enter = ${def || 'nenhum'}): `)).trim();
   return a === '' ? def : a;
 }
-async function secret(env, prompt) {
+async function secret(env, prompt) { // a chave aparece enquanto digita, de proposito: iniciantes estranham campo vazio
   if (envRaw(env) !== undefined) return envRaw(env).trim();
-  if (!TTY) return '';
-  const p = question(prompt); // o prompt sai antes de silenciar; so o que voce digita fica oculto
-  muted = true;
-  const a = await p; muted = false; process.stdout.write('\n');
-  return a.trim();
+  return TTY ? (await question(prompt)).trim() : '';
 }
 
 // ---------- hardware ----------
@@ -198,7 +190,7 @@ async function main() {
   if (cloud) {
     gemini = await yesNo('AULA_GEMINI', 'Usar o Gemini (Google) tambem? Bom: modelo mais forte no maestro. Ruim: precisa de conta Google e chave; no plano gratis o Google pode treinar com seus prompts.', false);
     if (gemini) {
-      geminiKey = await secret('AULA_GEMINI_KEY', 'Cole a chave do Gemini (crie em https://aistudio.google.com/apikey; nada aparece enquanto voce digita): ');
+      geminiKey = await secret('AULA_GEMINI_KEY', 'Cole a chave do Gemini (crie em https://aistudio.google.com/apikey; pode colar com botao direito): ');
       if (!geminiKey) { warn('Sem chave: seguindo so com Zen.'); gemini = false; }
       else {
         const ok = process.env.AULA_SKIP_VALIDATE === '1' ? true : await validateGoogleKey(geminiKey);
