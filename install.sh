@@ -67,7 +67,9 @@ case "$MODE" in claude|cloud|free|both|local) ;; *) echo "AULA_MODE invalido: $M
 say "Modo escolhido: $MODE"
 CTX=65536; [ "$VRAM" -ge 16 ] || CTX=32768   # contexto menor em placa pequena (KV cache)
 case "$MODE" in
-  local) local_models; ORCH="ollama/$L_ORCH"; MGR="ollama/$L_MGR"; DEV="ollama/$L_DEV";;
+  local) local_models; B_ORCH=$L_ORCH; B_MGR=$L_MGR; B_DEV=$L_DEV   # copias com contexto embutido (aula-<modelo>)
+         L_ORCH="aula-${B_ORCH//:/-}"; L_MGR="aula-${B_MGR//:/-}"; L_DEV="aula-${B_DEV//:/-}"
+         ORCH="ollama/$L_ORCH"; MGR="ollama/$L_MGR"; DEV="ollama/$L_DEV";;
   free)  ORCH="$FREE_ORCH"; MGR="$FREE_MGR"; DEV="$FREE_DEV";;
   both)  ORCH="$CLOUD_ORCH"; MGR="$FREE_MGR"; DEV="$FREE_DEV";;
   *)     ORCH="$CLOUD_ORCH"; MGR="$CLOUD_MGR"; DEV="$CLOUD_DEV";;
@@ -94,8 +96,14 @@ command -v opencode >/dev/null || { say "Instalando OpenCode..."; npm install -g
 
 if [ "$MODE" = local ]; then
   command -v ollama >/dev/null || { echo "Instale o Ollama (https://ollama.com/download) e rode de novo."; exit 1; }
+  # contexto padrao do Ollama (4k) quebra agentes: embutimos num modelo derivado
   for m in $(printf '%s
-' "$L_ORCH" "$L_MGR" "$L_DEV" | sort -u); do say "Baixando o modelo $m (pode demorar)..."; ollama pull "$m"; done
+' "$B_ORCH" "$B_MGR" "$B_DEV" | sort -u); do
+    say "Baixando o modelo $m (pode demorar)..."; ollama pull "$m"
+    printf 'FROM %s
+PARAMETER num_ctx %s
+' "$m" "$CTX" > "$TMP/Modelfile"; ollama create "aula-${m//:/-}" -f "$TMP/Modelfile" >/dev/null
+  done
 fi
 
 DEST="$HOME/.config/opencode"
@@ -129,7 +137,7 @@ case "$MODE" in
     echo "  Nao precisa de chave nem login: os modelos -free do OpenCode Zen funcionam direto (nos testes, sem conta)."
     echo "  Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)";;
   local)
-    echo "  Rode: OLLAMA_CONTEXT_LENGTH=$CTX ollama serve   (contexto minimo para agentes)";;
+    echo "  Confirme que o Ollama esta rodando (ollama serve, ou o app aberto).";;
 esac
 echo "  Depois entre numa pasta de projeto vazia e rode:  opencode"
 echo "  Exercicios em: $EX"

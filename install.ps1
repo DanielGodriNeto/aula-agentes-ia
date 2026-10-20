@@ -80,7 +80,8 @@ Say "Placa NVIDIA detectada: $vram GB de VRAM (0 = nenhuma)."
 if ($Mode -eq 'auto') { $Mode = Ask-Mode $vram }
 Say "Modo escolhido: $Mode"
 if ($Mode -eq 'local') {
-    $lm = Get-LocalModels $vram
+    $base = Get-LocalModels $vram
+    $lm = @{}; foreach ($k in 'ORCH','MGR','DEV') { $lm[$k] = 'aula-' + $base[$k].Replace(':','-') }   # copia com contexto embutido (ver Modelfile)
     $models = @{ ORCH = "ollama/$($lm.ORCH)"; MGR = "ollama/$($lm.MGR)"; DEV = "ollama/$($lm.DEV)" }
     $ctx = if ($vram -ge 16) { 65536 } else { 32768 }   # contexto menor em placa pequena (KV cache)
 } elseif ($Mode -eq 'free') { $models = $Free }
@@ -122,11 +123,13 @@ if (-not (Get-Command opencode -ErrorAction SilentlyContinue)) { Say 'Instalando
 # 3c. Ollama (so no modo local)
 if ($Mode -eq 'local') {
     if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) { Install-Winget 'Ollama.Ollama' 'Ollama' }
-    [Environment]::SetEnvironmentVariable('OLLAMA_CONTEXT_LENGTH', "$ctx", 'User')
-    $env:OLLAMA_CONTEXT_LENGTH = "$ctx"
-    foreach ($m in ($lm.ORCH, $lm.MGR, $lm.DEV | Select-Object -Unique)) {
-        Say "Baixando o modelo $m (pode demorar)..."
-        ollama pull $m
+    # O contexto padrao do Ollama (4k) quebra agentes; embutimos num modelo derivado, sem depender de variavel de ambiente.
+    foreach ($k in ($base.ORCH, $base.MGR, $base.DEV | Select-Object -Unique)) {
+        Say "Baixando o modelo $k (pode demorar)..."
+        ollama pull $k
+        $mf = Join-Path $tmp 'Modelfile'
+        Set-Content $mf "FROM $k`nPARAMETER num_ctx $ctx" -Encoding ASCII
+        ollama create ('aula-' + $k.Replace(':','-')) -f $mf | Out-Null
     }
 }
 
@@ -168,7 +171,7 @@ if ($Mode -eq 'cloud' -or $Mode -eq 'both') {
     Write-Host '  Nao precisa de chave nem login: os modelos "-free" do OpenCode Zen funcionam direto (nos testes, sem conta).'
     Write-Host '  Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)'
 } else {
-    Write-Host '  Reabra o terminal (para o OLLAMA_CONTEXT_LENGTH valer) e rode: ollama serve'
+    Write-Host '  Confirme que o Ollama esta aberto (icone na bandeja) e rode: opencode'
 }
 Write-Host '  Depois entre numa pasta de projeto vazia e rode:  opencode'
 Write-Host "  Exercicios em: $ex"
