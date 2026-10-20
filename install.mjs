@@ -21,7 +21,8 @@ const ZEN = { orch: 'opencode/deepseek-v4.1-flash-free', mgr: 'opencode/glm-5.3-
 // -------------------------------------------------------------------------------
 
 const MARK = ['<!-- AULA-AGENTES:BEGIN -->', '<!-- AULA-AGENTES:END -->'];
-const SAFE_BASH = ['ls*', 'pwd', 'git status*', 'git diff*', 'git log*'];
+const SAFE_BASH = ['ls', 'ls *', 'pwd', 'git status', 'git status *', 'git diff', 'git diff *', 'git log', 'git log *'];
+const RISKY = ['*--output*', '*--ext-diff*', '*--no-index*', '*-c *', '*;*', '*&*', '*|*', '*>*', '*$(*', '*`*']; // vencem a lista segura (ultima regra ganha)
 const EXTRAS = [
   ['scrapling-official', 'scrapling: le sites com scraping leve (so em sites que voce pode acessar)'],
   ['break-ui', 'break-ui: testa se a interface quebra com dados estranhos'],
@@ -140,13 +141,13 @@ function permYaml(level, withEdit) {
   let bash;
   if (level === 'free') bash = '  bash: allow';
   else if (level === 'ask') bash = '  bash: ask';
-  else bash = `  bash:\n    "*": ask\n${SAFE_BASH.map((c) => `    "${c}": allow`).join('\n')}`;
+  else bash = `  bash:\n    "*": ask\n${SAFE_BASH.map((c) => `    "${c}": allow`).concat(RISKY.map((c) => `    "${c}": ask`)).join('\n')}`;
   return withEdit ? `${bash}\n  edit: ${edit}` : bash;
 }
 function permJson(level) {
   if (level === 'free') return { bash: 'allow', edit: 'allow' };
   if (level === 'ask') return { bash: 'ask', edit: 'ask' };
-  return { bash: { '*': 'ask', ...Object.fromEntries(SAFE_BASH.map((c) => [c, 'allow'])) }, edit: 'allow' };
+  return { bash: { '*': 'ask', ...Object.fromEntries(SAFE_BASH.map((c) => [c, 'allow'])), ...Object.fromEntries(RISKY.map((c) => [c, 'ask'])) }, edit: 'allow' };
 }
 function fillAgent(txt, roles, level, file) {
   let t = txt.replace(/\r\n/g, '\n').replace(/\{\{ORCH\}\}/g, roles.orch).replace(/\{\{MGR\}\}/g, roles.mgr).replace(/\{\{DEV\}\}/g, roles.dev);
@@ -326,10 +327,11 @@ function setupOllama(lm, vram) {
   for (const m of new Set([lm.orch, lm.mgr, lm.dev])) {
     say(`Baixando ${m} (pode demorar)...`);
     if (sh('ollama', ['pull', m]).status !== 0) die(`Falhou ao baixar ${m}.`);
-    const mf = path.join(os.tmpdir(), `aula-Modelfile-${process.pid}`);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aula-')); // pasta privada: evita ataque por link simbolico
+    const mf = path.join(dir, 'Modelfile');
     wr(mf, `FROM ${m}\nPARAMETER num_ctx ${ctx}\n`);
     sh('ollama', ['create', derived(m), '-f', mf], { stdio: 'ignore' });
-    fs.rmSync(mf, { force: true });
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 }
 function smokeTest(model) {
