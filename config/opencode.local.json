@@ -9,15 +9,7 @@
       "options": {
         "baseURL": "http://localhost:11434/v1"
       },
-      "models": {
-        "{{LOCAL_NAME}}": {
-          "name": "{{LOCAL_NAME}}",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
-        }
-      }
+      "models": "{{LOCAL_MODELS}}"
     }
   },
   "mcp": {
@@ -26,7 +18,8 @@
       "command": [
         "npx",
         "-y",
-        "chrome-devtools-mcp@1.11.0","--isolated"
+        "chrome-devtools-mcp@1.11.0",
+        "--isolated"
       ],
       "enabled": true
     }

@@ -18,17 +18,34 @@ $Repo = 'DanielGodriNeto/aula-agentes-ia'
 # ---------- MODELOS (unico lugar para trocar; veja config/modelos.md) ----------
 $Cloud = @{ ORCH = 'google/gemini-3.8-flash'; MGR = 'google/gemini-3.8-flash'; DEV = 'google/gemini-3.5-flash-lite' }
 $Free  = @{ ORCH = 'opencode/deepseek-v4.1-flash-free'; MGR = 'opencode/glm-5.3-flash-free'; DEV = 'opencode/minimax-m3.1-flash-free' }
-$LocalBig   = 'qwen3-coder:30b'   # >= 24 GB de VRAM
-$LocalMid   = 'gpt-oss:20b'       # 12-16 GB de VRAM
 # -------------------------------------------------------------------------------
 
 function Say($m) { Write-Host "[aula] $m" -ForegroundColor Cyan }
 
 function Get-VramGB {
     $smi = Get-Command nvidia-smi -ErrorAction SilentlyContinue
-    if (-not $smi) { return 0 }
-    $mb = & nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | Select-Object -First 1
-    return [math]::Round([int]$mb / 1024)
+    if ($smi) {
+        $mb = & nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | Select-Object -First 1
+        return [math]::Round([int]$mb / 1024)
+    }
+    # AMD/Intel: WMI limita a 4 GB, entao le a memoria real do registro
+    $k = 'HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0*'
+    $max = 0
+    Get-ItemProperty $k -ErrorAction SilentlyContinue | ForEach-Object {
+        $b = $_.'HardwareInformation.qwMemorySize'
+        if ($b -and $b / 1GB -gt $max) { $max = [math]::Round($b / 1GB) }
+    }
+    return $max
+}
+
+# Modelos locais por VRAM (verificados em ollama.com/library em 2026-10-20; veja config/modelos.md)
+function Get-LocalModels($vram) {
+    if ($vram -ge 32) { return @{ ORCH = 'qwen3.8:27b'; MGR = 'qwen3.8:27b'; DEV = 'laguna-xs-2.1' } }
+    if ($vram -ge 24) { $m = 'muse-glimmer:30b' }
+    elseif ($vram -ge 16) { $m = 'gpt-oss:20b' }
+    elseif ($vram -ge 12) { $m = 'gemma4:12b' }
+    else { $m = 'ornith-1.5:9b' }
+    return @{ ORCH = $m; MGR = $m; DEV = $m }
 }
 
 function Install-Winget($id, $name) {
@@ -41,7 +58,7 @@ function Install-Winget($id, $name) {
 # 1. Modo (pergunta quando AULA_MODE nao foi definido)
 function Ask-Mode($vram) {
     $hasClaude = [bool](Get-Command claude -ErrorAction SilentlyContinue)
-    $default = if ($hasClaude) { 'claude' } elseif ($vram -ge 12) { 'local' } else { 'free' }
+    $default = if ($hasClaude) { 'claude' } elseif ($vram -ge 16) { 'local' } else { 'free' }
     if (-not [Environment]::UserInteractive -or [Console]::IsInputRedirected) { return $default }
     Write-Host ''
     if ($hasClaude) {
@@ -51,19 +68,21 @@ function Ask-Mode($vram) {
     Write-Host '  [2] Zen (gratis)    bom: sem conta, sem chave, sem cartao, sem guardar seus dados. ruim: limites nao publicados (sala cheia pode dar erro 429), modelos menores, lista muda.'
     Write-Host '  [3] Gemini (gratis) bom: modelos mais fortes, limites claros no AI Studio. ruim: precisa de conta Google e chave; no plano gratis o Google pode TREINAR com seus prompts; cota diaria baixa.'
     Write-Host '  [4] Zen + Gemini    bom: divide a carga (Gemini so no maestro, Zen no resto), duas cotas, se um cair o outro segura. ruim: configurar os dois. RECOMENDADO para quem tem conta Google.'
-    Write-Host "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: baixa 15-20 GB e exige placa de 12 GB+ (a sua: $vram GB)."
+    $lm = Get-LocalModels $vram
+    Write-Host "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: download de 7-20 GB; modelo pequeno erra mais. Sua placa: $vram GB -> $($lm.ORCH) (+ $($lm.DEV) no dev). Abaixo de 8 GB nao recomendo."
     $map = @{ '1'='claude'; '2'='free'; '3'='cloud'; '4'='both'; '5'='local' }
     $dnum = ($map.GetEnumerator() | Where-Object { $_.Value -eq $default }).Key
     $a = Read-Host "Escolha [1-5] (Enter = $dnum)"
     if ($map.ContainsKey($a)) { return $map[$a] } else { return $default }
 }
-$vram = Get-VramGB
+$vram = if ($env:AULA_VRAM) { [int]$env:AULA_VRAM } else { Get-VramGB }   # AULA_VRAM força o tier (teste)
 Say "Placa NVIDIA detectada: $vram GB de VRAM (0 = nenhuma)."
 if ($Mode -eq 'auto') { $Mode = Ask-Mode $vram }
 Say "Modo escolhido: $Mode"
 if ($Mode -eq 'local') {
-    $localModel = if ($vram -ge 24) { $LocalBig } else { $LocalMid }
-    $models = @{ ORCH = "ollama/$localModel"; MGR = "ollama/$localModel"; DEV = "ollama/$localModel" }
+    $lm = Get-LocalModels $vram
+    $models = @{ ORCH = "ollama/$($lm.ORCH)"; MGR = "ollama/$($lm.MGR)"; DEV = "ollama/$($lm.DEV)" }
+    $ctx = if ($vram -ge 16) { 65536 } else { 32768 }   # contexto menor em placa pequena (KV cache)
 } elseif ($Mode -eq 'free') { $models = $Free }
 elseif ($Mode -eq 'both') { $models = @{ ORCH = $Cloud.ORCH; MGR = $Free.MGR; DEV = $Free.DEV } }
 else { $models = $Cloud }
@@ -103,10 +122,12 @@ if (-not (Get-Command opencode -ErrorAction SilentlyContinue)) { Say 'Instalando
 # 3c. Ollama (so no modo local)
 if ($Mode -eq 'local') {
     if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) { Install-Winget 'Ollama.Ollama' 'Ollama' }
-    [Environment]::SetEnvironmentVariable('OLLAMA_CONTEXT_LENGTH', '65536', 'User')
-    $env:OLLAMA_CONTEXT_LENGTH = '65536'
-    Say "Baixando o modelo $localModel (pode demorar e ocupar 15-20 GB)..."
-    ollama pull $localModel
+    [Environment]::SetEnvironmentVariable('OLLAMA_CONTEXT_LENGTH', "$ctx", 'User')
+    $env:OLLAMA_CONTEXT_LENGTH = "$ctx"
+    foreach ($m in ($lm.ORCH, $lm.MGR, $lm.DEV | Select-Object -Unique)) {
+        Say "Baixando o modelo $m (pode demorar)..."
+        ollama pull $m
+    }
 }
 
 # 4. Copia configuracao
@@ -120,7 +141,10 @@ New-Item -ItemType Directory -Force "$dest\agents", "$dest\skills" | Out-Null
 
 function Fill($text) {
     $text = $text.Replace('{{ORCH}}', $models.ORCH).Replace('{{MGR}}', $models.MGR).Replace('{{DEV}}', $models.DEV)
-    if ($Mode -eq 'local') { $text = $text.Replace('{{LOCAL_NAME}}', $localModel) }
+    if ($Mode -eq 'local') {
+        $items = ($lm.ORCH, $lm.MGR, $lm.DEV | Select-Object -Unique) | ForEach-Object { "`"$_`":{`"name`":`"$_`",`"limit`":{`"context`":$ctx,`"output`":8192}}" }
+        $text = $text.Replace('"{{LOCAL_MODELS}}"', '{' + ($items -join ',') + '}')
+    }
     return $text
 }
 foreach ($f in Get-ChildItem "$src\agents\*.md") {
