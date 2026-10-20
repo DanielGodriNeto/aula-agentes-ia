@@ -129,7 +129,7 @@ case "$MODE" in
     echo "  Nao precisa de chave nem login: os modelos -free do OpenCode Zen funcionam direto (nos testes, sem conta)."
     echo "  Confira os modelos gratis de hoje:  opencode models opencode   (a lista muda; edite ~/.config/opencode/agents/*.md se algum sumiu)";;
   local)
-    echo "  Rode: OLLAMA_CONTEXT_LENGTH=$CTX ollama serve   (contexto: OLLAMA_CONTEXT_LENGTH=$CTX)";;
+    echo "  Rode: OLLAMA_CONTEXT_LENGTH=$CTX ollama serve   (contexto minimo para agentes)";;
 esac
 echo "  Depois entre numa pasta de projeto vazia e rode:  opencode"
 echo "  Exercicios em: $EX"
