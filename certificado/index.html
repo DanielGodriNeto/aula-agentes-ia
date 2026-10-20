@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certificado de participação</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+@page{size:A4 landscape;margin:0}
+:root{--bg:#f4efe6;--ink:#1b1a17;--mute:#6b665c;--acc:#b8400b}
+*{box-sizing:border-box}
+body{margin:0;background:#cfc8b8;font:400 16px/1.5 "IBM Plex Sans",system-ui,sans-serif;color:var(--ink)}
+.page{width:297mm;height:210mm;margin:0 auto;background:var(--bg);padding:14mm;position:relative}
+.frame{height:100%;border:2px solid var(--ink);outline:1px solid var(--ink);outline-offset:-8px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:0 20mm}
+.k{font:600 11pt "IBM Plex Sans";letter-spacing:.3em;text-transform:uppercase;color:var(--acc)}
+h1{font:700 38pt/1.1 Fraunces,Georgia,serif;margin:6mm 0 4mm}
+.nome{font:500 34pt/1.2 Fraunces,Georgia,serif;border-bottom:1.5px solid var(--ink);padding:0 10mm 2mm;margin:4mm 0;min-width:120mm}
+p{font-size:13pt;max-width:200mm;margin:2mm 0}
+.mute{color:var(--mute);font-size:10.5pt}
+.ass{margin-top:14mm;display:flex;gap:30mm;font-size:11pt}
+.ass div{border-top:1px solid var(--ink);padding-top:2mm;min-width:60mm}
+@media print{body{background:none}.page{margin:0}}
+@media screen and (max-width:1100px){.page{zoom:.5}}
+</style>
+</head>
+<body>
+<div class="page"><div class="frame">
+  <div class="k">Certificado de participação</div>
+  <h1>Agentes de IA na prática</h1>
+  <p>Certificamos que</p>
+  <div class="nome" id="nome">Nome do participante</div>
+  <p>participou da aula aberta online <b>Introdução a sistemas agênticos</b>, instalou e executou um time de agentes de IA (orquestrador, gerente e executor) e concluiu a atividade prática de criação de um site.</p>
+  <p class="mute" id="data"></p>
+  <div class="ass"><div>Daniel Godri Neto<br><span class="mute">Instrutor</span></div></div>
+  <p class="mute" style="margin-top:8mm;font-size:9pt">Certificado de participação em evento aberto, sem carga horária oficial nem valor acadêmico.</p>
+</div></div>
+<script>
+const q=new URLSearchParams(location.search);
+const nome=(q.get('nome')||'').trim().slice(0,80);
+if(nome)document.getElementById('nome').textContent=nome;
+const d=q.get('data')||new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
+document.getElementById('data').textContent=d.slice(0,40);
+</script>
+</body>
+</html>

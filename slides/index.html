@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentes de IA na Prática</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4efe6;--ink:#1b1a17;--mute:#6b665c;--line:#d9d1c1;--acc:#b8400b;--card:#ebe4d6;--ok:#2f6b3a}
+@media (prefers-color-scheme:dark){:root{--bg:#171613;--ink:#f0eadc;--mute:#a39c8c;--line:#38342c;--acc:#f08a4b;--card:#221f1a;--ok:#7bc489}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:400 clamp(16px,1.9vw,24px)/1.5 "IBM Plex Sans",system-ui,sans-serif}
+.slide{display:none;min-height:100vh;padding:clamp(24px,6vh,72px) clamp(20px,7vw,110px) 80px;max-width:1280px;margin:0 auto;flex-direction:column;justify-content:center}
+.slide.on{display:flex}
+h1,h2{font-family:Fraunces,Georgia,serif;font-weight:700;line-height:1.08;margin:0 0 .5em;letter-spacing:-.01em}
+h1{font-size:clamp(2.2rem,6.5vw,5rem)}h2{font-size:clamp(1.7rem,4vw,3rem)}
+.kick{font:600 .72em "JetBrains Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:1rem}
+p{margin:.4em 0;max-width:46em}.mute{color:var(--mute)}
+ul{padding-left:1.1em;margin:.4em 0}li{margin:.35em 0;max-width:44em}
+code,pre,.mono{font-family:"JetBrains Mono",monospace;font-size:.82em}
+pre{background:var(--card);border:1px solid var(--line);padding:.9em 1.1em;overflow-x:auto;border-radius:6px;margin:.6em 0}
+table{border-collapse:collapse;width:100%;font-size:.88em;margin-top:.6em}
+th,td{text-align:left;padding:.5em .7em;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .75em "JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem}
+.box{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:1rem 1.2rem}
+.box b{display:block;font-family:Fraunces,serif;font-size:1.2em;margin-bottom:.2em}
+.tier{border-left:4px solid var(--acc)}
+.big{font-family:Fraunces,serif;font-size:clamp(2rem,6vw,4.4rem);color:var(--acc);line-height:1}
+.warn{border-left:4px solid var(--acc);padding:.3em 1em;background:var(--card)}
+textarea{width:100%;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:.7em;min-height:5em}
+a{color:var(--acc)}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:.6rem 1.2rem;font:.7em "JetBrains Mono",monospace;color:var(--mute);background:linear-gradient(transparent,var(--bg) 40%)}
+.nav button{font:inherit;color:var(--ink);background:none;border:1px solid var(--line);border-radius:4px;padding:.4em .9em;cursor:pointer;min-height:36px}
+.nav button:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.bar{position:fixed;top:0;left:0;height:3px;background:var(--acc);transition:width .2s}
+@media (prefers-reduced-motion:reduce){.bar{transition:none}}
+@media print{.slide{display:flex;min-height:auto;page-break-after:always}.nav,.bar{display:none}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+
+<section class="slide on">
+  <div class="kick">Aula aberta · online</div>
+  <h1>Agentes de IA<br>na prática</h1>
+  <p>Tokens, contexto e um time de modelos que trabalha por você. Grátis, no seu computador.</p>
+  <p class="mute mono">Use as setas ← → ou espaço · F = tela cheia</p>
+</section>
+
+<section class="slide">
+  <div class="kick">Comece agora</div>
+  <h2>Instale enquanto eu falo</h2>
+  <p>Abra o PowerShell (Windows) ou o Terminal (Mac/Linux) e cole <b>um</b> comando. Ele roda ao fundo.</p>
+  <pre>irm https://raw.githubusercontent.com/DanielGodriNeto/aula-agentes-ia/main/install.ps1 | iex</pre>
+  <pre>curl -fsSL https://raw.githubusercontent.com/DanielGodriNeto/aula-agentes-ia/main/install.sh | bash</pre>
+  <p class="mute">Repositório: github.com/DanielGodriNeto/aula-agentes-ia · Falhou? Avise no chat, a gente resolve em paralelo.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">Mapa</div>
+  <h2>O que vamos fazer em 2 horas</h2>
+  <table>
+    <tr><th>Bloco</th><th>O que acontece</th></tr>
+    <tr><td>1 · Bases</td><td>LLM, token, contexto, custo</td></tr>
+    <tr><td>2 · Agentes</td><td>Loop, ferramentas, skills, subagentes</td></tr>
+    <tr><td>3 · Segurança</td><td>Ler o instalador, privacidade, permissões</td></tr>
+    <tr><td>4 · Demo</td><td>Claude Code real com Opus, Sonnet e Haiku</td></tr>
+    <tr><td>5 · Mão na massa</td><td>Cada um faz um site com o seu time de agentes</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <div class="kick">1 · Bases</div>
+  <h2>Um LLM prevê o próximo pedaço de texto</h2>
+  <p>Ele não "sabe" o que você quer. Ele calcula qual pedaço de texto tem mais chance de vir depois do que já está escrito, repete isso, e a resposta aparece.</p>
+  <div class="grid">
+    <div class="box"><b>Treino</b>Aprende padrões em muito texto e código.</div>
+    <div class="box"><b>Inferência</b>Gera a resposta pedaço por pedaço, quando você pergunta.</div>
+    <div class="box"><b>Sem memória própria</b>Só enxerga o que está no contexto desta conversa.</div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kick">1 · Bases</div>
+  <h2>Token: a unidade que você paga e que limita tudo</h2>
+  <p>Um token é um pedaço de texto: às vezes uma palavra, às vezes só sílaba ou símbolo. Em português, uma conta rápida é <b>1 token ≈ 3–4 caracteres</b>.</p>
+  <textarea id="tk" aria-label="Texto para estimar tokens">Escreva aqui qualquer frase e veja a estimativa de tokens.</textarea>
+  <p><span class="big" id="tkn">0</span> <span class="mute">tokens (estimativa grosseira; cada modelo tem seu tokenizador)</span></p>
+</section>
+
+<section class="slide">
+  <div class="kick">1 · Bases</div>
+  <h2>Contexto: a mesa onde cabe tudo</h2>
+  <p>Contexto é tudo que o modelo enxerga de uma vez: sua conversa, arquivos lidos, resultados de ferramentas e as instruções. Os modelos Claude atuais têm janela de 1 milhão de tokens e até 128 mil de saída.</p>
+  <ul>
+    <li>Mais contexto = mais caro e mais lento a cada passo.</li>
+    <li>Contexto cheio de lixo piora a qualidade da resposta.</li>
+    <li><b>Subagentes</b> existem em boa parte para manter o contexto principal limpo.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="kick">1 · Bases</div>
+  <h2>Entrada, saída e o preço</h2>
+  <p>Cobra-se por milhão de tokens (MTok). Saída custa cerca de 5× a entrada. Tabela de 20/10/2026:</p>
+  <table>
+    <tr><th>Modelo</th><th>Entrada</th><th>Saída</th><th>Papel no time</th></tr>
+    <tr><td>Opus 5.5</td><td>US$ 4</td><td>US$ 20</td><td>Maestro</td></tr>
+    <tr><td>Sonnet 5.5</td><td>US$ 2</td><td>US$ 10</td><td>Gerente</td></tr>
+    <tr><td>Haiku 5.5</td><td>a partir de US$ 0,10</td><td>a partir de US$ 0,50</td><td>Dev</td></tr>
+  </table>
+  <p>Mesma tarefa com 200 mil tokens lidos e 20 mil escritos: <b>Opus ≈ US$ 1,20</b>, <b>Haiku ≈ US$ 0,03</b>. 40× de diferença. Esse é o motivo do time.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">1 · Bases</div>
+  <h2>Cache: ler de novo sai quase de graça</h2>
+  <p>Se o começo do prompt se repete (instruções, arquivos), o provedor guarda esse trecho. Reler custa uma fração do preço (a partir de 0,1× nos modelos Claude; 0,05× no Opus 5.5 e Sonnet 5.5). O cache dura ~5 minutos e é renovado a cada uso.</p>
+  <p class="warn">Consequência prática: trocar de modelo ou mudar as instruções no meio da sessão derruba o cache e custa mais.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">2 · Agentes</div>
+  <h2>Do chat ao agente: um loop</h2>
+  <pre>1. pensa o próximo passo
+2. chama uma ferramenta (ler arquivo, rodar comando, buscar)
+3. recebe o resultado
+4. volta ao 1 até terminar ou travar</pre>
+  <p>Chat responde. Agente <b>age, confere e corrige</b>. A qualidade vem menos do "gênio" do modelo e mais da ferramenta, da checagem e do contexto certo.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">2 · Agentes</div>
+  <h2>Ferramentas, skills e permissões</h2>
+  <div class="grid">
+    <div class="box"><b>Ferramentas</b>Ler, editar, rodar comando, buscar na web.</div>
+    <div class="box"><b>Skills</b>Pasta com um <code>SKILL.md</code>: instruções que só entram no contexto quando a tarefa pede.</div>
+    <div class="box"><b>Permissões</b>O que o agente pode fazer sozinho, o que pergunta antes, o que nunca faz.</div>
+  </div>
+  <p class="mute">Skill é "carregamento sob demanda": só nome e descrição ficam sempre no contexto.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">2 · Agentes</div>
+  <h2>Subagentes: um funcionário com a própria mesa</h2>
+  <ul>
+    <li>Cada subagente tem <b>contexto próprio</b>, modelo próprio e permissões próprias.</li>
+    <li>Ele trabalha, e devolve só um resumo curto ao chefe.</li>
+    <li>No Claude Code é um arquivo <code>.md</code> em <code>.claude/agents/</code> com <code>model: haiku</code>. No OpenCode é igual, em <code>~/.config/opencode/agents/</code>.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="kick">2 · Agentes</div>
+  <h2>O time: forte pensa, médio gerencia, pequeno executa</h2>
+  <div class="grid">
+    <div class="box tier"><b>Maestro · Opus</b>Entende, escolhe o tamanho, planeja, confere. Não digita código.</div>
+    <div class="box tier"><b>Gerente · Sonnet</b>Quebra o plano em tarefas minúsculas, verifica, passa pela segurança.</div>
+    <div class="box tier"><b>Dev · Haiku</b>Edita um arquivo, escreve uma função. Barato e rápido.</div>
+  </div>
+  <p>Resultado: o modelo caro não renomeia pasta nem fica em loop de ajuste fino.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">2 · Agentes</div>
+  <h2>Nem toda tarefa precisa do time todo</h2>
+  <table>
+    <tr><th>Tamanho</th><th>Exemplo</th><th>Quem faz</th></tr>
+    <tr><td>Pequeno</td><td>Trocar a cor de um botão</td><td>Gerente ou dev, sem plano</td></tr>
+    <tr><td>Médio</td><td>Página nova</td><td>Maestro planeja → gerente → dev</td></tr>
+    <tr><td>Grande / risco</td><td>Login, pagamento, dados pessoais</td><td>Plano + riscos + revisão de segurança</td></tr>
+  </table>
+  <p class="mute">Na dúvida entre dois tamanhos, escolha o maior. "Pronto" só vale depois de rodar uma checagem.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">2 · Agentes</div>
+  <h2>O mesmo time, de graça</h2>
+  <table>
+    <tr><th>Papel</th><th>Claude Code</th><th>Nuvem grátis</th><th>Local (GPU)</th></tr>
+    <tr><td>Maestro</td><td>Opus</td><td>Gemini 2.5 Pro</td><td rowspan="3">Um modelo só<br>(qwen3-coder ou gpt-oss)</td></tr>
+    <tr><td>Gerente</td><td>Sonnet</td><td>Gemini 2.5 Flash</td></tr>
+    <tr><td>Dev</td><td>Haiku</td><td>Gemini 2.5 Flash-Lite</td></tr>
+  </table>
+  <p>Harness: <b>OpenCode</b> (licença MIT). O instalador escolhe nuvem ou local pela sua placa de vídeo.</p>
+  <p class="mute">Atenção: Gemini é grátis, mas não é open source. Os modelos locais são abertos.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">3 · Segurança</div>
+  <h2>Antes de colar um comando da internet, leia</h2>
+  <ul>
+    <li><code>irm … | iex</code> e <code>curl … | bash</code> executam o que o dono do link escrever. Vamos abrir o <code>install.ps1</code> e ler juntos.</li>
+    <li>Este instalador não pede e não guarda chave, não usa <code>sudo</code>, e faz backup da sua configuração.</li>
+    <li><b>Plano grátis do Google pode usar seus prompts para treino.</b> Nada de senha, dado pessoal ou código privado.</li>
+    <li>Agente com permissão de editar e rodar comandos é poder. Deixe "perguntar antes" ligado.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="kick">4 · Demo</div>
+  <h2>Ao vivo: Claude Code com o time</h2>
+  <ul>
+    <li><b>Pedido pequeno:</b> "troque a cor do botão para verde". Veja que nenhum subagente é criado.</li>
+    <li><b>Pedido médio:</b> "crie uma página de contato". Veja o plano, o gerente e o dev.</li>
+    <li>Conferimos o custo em tokens de cada um.</li>
+  </ul>
+  <p class="mute">Claude Code é pago (Pro a partir de US$ 20/mês). Por isso é demo do professor.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">5 · Mão na massa</div>
+  <h2>Primeira execução</h2>
+  <pre>1. Chave grátis:  aistudio.google.com/apikey
+2. opencode auth login    (escolha Google, cole a chave)
+3. mkdir meu-site &amp;&amp; cd meu-site
+4. opencode               (o agente "maestro" já vem selecionado)
+5. Digite: "diga oi e liste quem está no seu time"</pre>
+  <p class="mute">Modo local: abra o Ollama antes (<code>ollama serve</code>) e pule os passos 1 e 2.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">5 · Mão na massa</div>
+  <h2>A tarefa: um site básico</h2>
+  <ol>
+    <li><b>Pequeno:</b> "crie um <code>index.html</code> com título e um parágrafo sobre mim".</li>
+    <li><b>Médio:</b> "adicione seções Sobre, Projetos e Contato, responsivo para celular, usando a skill ui-basico".</li>
+    <li><b>Pequeno de novo:</b> "mude a cor de destaque para uma que combine".</li>
+    <li>Abra o arquivo no navegador e confira no celular (F12 → ícone de celular).</li>
+  </ol>
+  <p class="mute">Observe qual papel o agente usou em cada pedido e se foi o certo.</p>
+</section>
+
+<section class="slide">
+  <div class="kick">Depois da aula</div>
+  <h2>Erros comuns e próximos passos</h2>
+  <ul>
+    <li>Cota grátis esgotou: troque os três papéis para Flash em <code>~/.config/opencode/agents/</code>.</li>
+    <li>Modelo local errando ferramentas: contexto abaixo de 64k, ou modelo pequeno demais.</li>
+    <li>Peça sempre uma checagem executável ("rode e me mostre o resultado").</li>
+    <li>Próximo: escreva a sua skill (uma pasta, um <code>SKILL.md</code>).</li>
+  </ul>
+  <p><b>Certificado:</b> envie o link ou print do seu site no formulário que vou colocar no chat.</p>
+</section>
+
+<div class="nav"><button id="prev" aria-label="Anterior">←</button><span id="pos"></span><button id="next" aria-label="Próximo">→</button></div>
+<script>
+const s=[...document.querySelectorAll('.slide')];let i=0;
+const go=n=>{i=Math.max(0,Math.min(s.length-1,n));s.forEach((e,k)=>e.classList.toggle('on',k===i));
+ document.getElementById('pos').textContent=(i+1)+' / '+s.length;
+ document.getElementById('bar').style.width=((i+1)/s.length*100)+'%';
+ try{history.replaceState(null,'','#'+(i+1))}catch(e){}};
+document.getElementById('prev').onclick=()=>go(i-1);document.getElementById('next').onclick=()=>go(i+1);
+addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA')return;
+ if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();go(i+1)}
+ else if(['ArrowLeft','PageUp'].includes(e.key))go(i-1);
+ else if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.()}});
+const tk=document.getElementById('tk'),tkn=document.getElementById('tkn');
+const upd=()=>tkn.textContent=Math.ceil(tk.value.length/3.5);tk.oninput=upd;upd();
+go((parseInt(location.hash.slice(1))||1)-1);
+</script>
+</body>
+</html>
