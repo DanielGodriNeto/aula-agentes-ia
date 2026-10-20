@@ -38,12 +38,12 @@ Roteamento por tamanho (skill `rotear-tarefa`): pequeno vai direto ao gerente/de
 
 | Papel | Claude Code | Gemini gratis | Zen gratis | Local |
 |---|---|---|---|---|
-| maestro | opus | gemini-3.8-flash | deepseek-v4.1-flash-free | modelo unico (qwen3-coder / gpt-oss) |
+| maestro | opus | gemini-3.8-flash | deepseek-v4.1-flash-free | um modelo por faixa de VRAM (ornith 9B ... muse-glimmer 30B; ver config/modelos.md) |
 | gerente | sonnet | gemini-3.8-flash | glm-5.3-flash-free | idem |
 | dev | haiku | gemini-3.5-flash-lite | minimax-m3.1-flash-free | idem |
 
 ## 4. Entregaveis (este repositorio)
-- `install.ps1` / `install.sh`: escolhem o modo (Claude Code > GPU 12 GB+ > Gemini gratis; `AULA_MODE=free` forca Zen), instalam OpenCode (+Ollama), copiam agentes, skills e exercicios com backup.
+- `install.ps1` / `install.sh`: escolhem o modo (pergunta: Claude Code, Zen, Gemini, Zen+Gemini ou local por VRAM; `AULA_MODE=` pula a pergunta), instalam OpenCode (+Ollama), copiam agentes, skills e exercicios com backup.
 - `agents-claude/`: os mesmos tres papeis com `model: opus/sonnet/haiku`, para quem ja tem Claude Code.
 - `exercicios/`: PDF de teste (texto oculto), 3 exercicios, `defesa/AGENTS.md`.
 - `skills/` + `THIRD_PARTY.md`: 5 proprias e 3 de terceiros com licenca (nao incluida: hallmark, 67 KB).
@@ -88,7 +88,7 @@ Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel 
 - Limites gratis mudam sem aviso (alto). Mitigacao: teste na vespera, plano B.
 - Dados enviados ao Google no tier gratis (medio). Mitigacao: aviso explicito.
 - Instalador executado por desconhecidos (medio): sem chaves, backup da config, codigo curto e legivel, sem `sudo`.
-- Fragilidade dos modelos pequenos em tool calls (medio): por isso o limiar de 12 GB e a nuvem como padrao.
+- Fragilidade dos modelos pequenos em tool calls (medio): por isso local so e o padrao com >= 16 GB; testado em 8 GB (RX 7600): funciona, mas lento (~5 min/tarefa).
 
 ## 9. Diario de decisoes
 - 2026-10-20: pedido recebido. Pesquisa de harnesses, tiers gratis, modelos locais e mecanica do Claude Code (`docs/pesquisa.md`).
@@ -100,3 +100,10 @@ Ex1 pequeno (sem subagente) > Ex2 "leia o briefing-site.pdf": o texto invisivel 
 - 2026-10-20: instaladores com 4 modos (claude/cloud/free/local) e copia de exercicios. Sintaxe validada; execucao dos modos claude/free/local NAO testada.
 - 2026-10-20: testes reais com OpenCode 1.19.0 e Zen sem login: os 3 modelos do time respondem; maestro->gerente delega e o site e criado (gerente->dev nao confirmado; bash do gerente e recusado em `opencode run` nao interativo); MCP `chrome-devtools` conecta (precisa do Chrome instalado; sem ele o modelo cai no webfetch). Padrao de quem nao tem Claude Code passou a ser Zen free (sem retencao, sem login) em vez de Gemini. `skills-extras/` opt-in com `AULA_EXTRAS=1`. Pesquisa completa: `docs/modelos-gratis.md`.
 - Pendente: ensaio real em maquinas limpas, confirmar IDs de modelo e hierarquia de 3 niveis, gravar demo.
+
+### 2026-10-20 (testes reais)
+- Instalador pergunta o provedor (Claude/Zen/Gemini/Zen+Gemini/Local); modo `both` = maestro Gemini, gerente+dev Zen. Testado: fake HOME (bash) e PowerShell; menu PowerShell com entrada simulada.
+- Aninhamento maestro->gerente->dev: FALHA por padrao ("Subagent depth limit reached (1)"). Corrigido com `"subagent_depth": 2` no opencode.json; refeito: dev escreveu o arquivo.
+- Local real: RX 7600 (8 GB, AMD) detectada pelo registro (nvidia-smi nao existe); `ornith-1.5:9b` baixado e rodando via derivado `aula-ornith-1.5-9b`. Contexto padrao do Ollama (4k) estoura (prompt do OpenCode ~12k tokens) -> embutido num Modelfile (`num_ctx`). Tarefa simples levou ~5 min e o modelo tentou usar o navegador sem necessidade.
+- Navegacao: Chrome instalado; chrome-devtools MCP abriu example.com e leu o titulo com glm-5.3-flash-free.
+- NAO testado: chave Gemini real (sem chave), Mac/Linux, tiers 12/16/24/32 GB reais (so geracao de config com ollama simulado), 429 do Zen com sala cheia.

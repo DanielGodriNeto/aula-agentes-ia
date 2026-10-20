@@ -11,12 +11,15 @@ Os IDs ficam nos scripts `install.ps1` / `install.sh` (bloco "MODELOS"). Free ti
 Os Gemini 2.5 ficaram restritos a quem ja os usava e o Pro nao tem plano gratis, por isso o 3.x. Os modelos Zen listados nao retem dados; a lista muda: confira com `opencode models opencode`. Local (GPU):
 Todos os papeis usam o mesmo modelo.
 
-Local usa UM modelo para os tres papeis (tres modelos nao cabem juntos na VRAM). A diferenca entre os papeis vem do prompt e das permissoes.
+Local: um modelo por faixa de VRAM (tres modelos diferentes nao cabem juntos; a diferenca entre os papeis vem do prompt e das permissoes). Tags conferidas em ollama.com/library em 2026-10-20; o instalador baixa o modelo e cria uma copia `aula-<modelo>` com o contexto embutido (o padrao do Ollama, 4k, quebra agentes).
 
-| VRAM / memoria | Modelo local (nao verificado, testar) |
-|---|---|
-| >= 24 GB (ou Mac com >= 32 GB) | `qwen3-coder:30b` |
-| 12-16 GB | `gpt-oss:20b` |
-| < 12 GB ou sem GPU | usar nuvem (modelos pequenos falham em tool calls) |
+| VRAM / memoria | Maestro e gerente | Dev | Observacao |
+|---|---|---|---|
+| < 8 GB ou sem GPU | nao recomendado | | use Zen/Gemini |
+| 8-11 GB | `ornith-1.5:9b` (6,6 GB) | igual | TESTADO aqui (RX 7600 8 GB): cria arquivo e delega, mas ~5 min por tarefa simples |
+| 12-15 GB | `gemma4:12b` (8 GB) | igual | nao testado |
+| 16-23 GB | `gpt-oss:20b` (14 GB) | igual | nao testado |
+| 24-31 GB | `muse-glimmer:30b` (18 GB, Apache-2.0) | igual | nao testado |
+| >= 32 GB (nao Mac) | `qwen3.8:27b` (18 GB) | `laguna-xs-2.1` (20 GB, coder) | nao testado; em Mac o laguna pode devolver vazio, o instalador usa muse-glimmer |
 
-Contexto minimo: 64k tokens (o instalador define `OLLAMA_CONTEXT_LENGTH=65536`).
+Contexto: 64k (>= 16 GB) ou 32k (menos, por causa do KV cache). `AULA_VRAM=16` forca a faixa. Detalhes e fontes: `docs/modelos-locais.md`.

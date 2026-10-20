@@ -69,7 +69,7 @@ function Ask-Mode($vram) {
     Write-Host '  [3] Gemini (gratis) bom: modelos mais fortes, limites claros no AI Studio. ruim: precisa de conta Google e chave; no plano gratis o Google pode TREINAR com seus prompts; cota diaria baixa.'
     Write-Host '  [4] Zen + Gemini    bom: divide a carga (Gemini so no maestro, Zen no resto), duas cotas, se um cair o outro segura. ruim: configurar os dois. RECOMENDADO para quem tem conta Google.'
     $lm = Get-LocalModels $vram
-    Write-Host "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: download de 7-20 GB; modelo pequeno erra mais. Sua placa: $vram GB -> $($lm.ORCH) (+ $($lm.DEV) no dev). Abaixo de 8 GB nao recomendo."
+    Write-Host "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: download de 7-20 GB; modelo pequeno erra mais. Sua placa: $vram GB -> $($lm.ORCH)$(if ($lm.DEV -ne $lm.ORCH) { ' + ' + $lm.DEV + ' no dev' }). Abaixo de 8 GB nao recomendo."
     $map = @{ '1'='claude'; '2'='free'; '3'='cloud'; '4'='both'; '5'='local' }
     $dnum = ($map.GetEnumerator() | Where-Object { $_.Value -eq $default }).Key
     $a = Read-Host "Escolha [1-5] (Enter = $dnum)"

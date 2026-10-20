@@ -56,7 +56,7 @@ ask_mode() {
     echo "  [3] Gemini (gratis) bom: modelos mais fortes, limites claros no AI Studio. ruim: precisa de conta Google e chave; no plano gratis o Google pode TREINAR com seus prompts; cota diaria baixa."
     echo "  [4] Zen + Gemini    bom: divide a carga (Gemini so no maestro, Zen no resto), duas cotas, se um cair o outro segura. ruim: configurar os dois. RECOMENDADO para quem tem conta Google."
     local_models
-    echo "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: download de 7-20 GB; modelo pequeno erra mais. Sua placa: ${VRAM} GB -> ${L_ORCH} (+ ${L_DEV} no dev). Abaixo de 8 GB nao recomendo."
+    echo "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: download de 7-20 GB; modelo pequeno erra mais. Sua placa: ${VRAM} GB -> ${L_ORCH}$([ "$L_DEV" != "$L_ORCH" ] && echo " + ${L_DEV} no dev"). Abaixo de 8 GB nao recomendo."
     printf "Escolha [1-5] (Enter = %s): " "$n"
   } > /dev/tty
   read -r a < /dev/tty || a=""

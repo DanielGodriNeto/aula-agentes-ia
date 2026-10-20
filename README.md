@@ -1,6 +1,6 @@
 # Aula: agentes de IA na prática
 
-Time de agentes de IA **grátis** (maestro → gerente → dev), instalado com um comando. O instalador escolhe sozinho: **Claude Code** se você já tem; senão **modelo local** (GPU NVIDIA/Apple com 12 GB+); senão os **modelos grátis do OpenCode Zen** (sem chave, sem login, sem cartão, sem retenção de dados). `AULA_MODE=cloud` usa Gemini com chave grátis (o Google pode treinar com seus prompts). Comparativo: [docs/modelos-gratis.md](docs/modelos-gratis.md).
+Time de agentes de IA **grátis** (maestro → gerente → dev), instalado com um comando. O instalador **pergunta** qual você prefere, mostrando o bom e o ruim de cada um: **Claude Code** (assinatura), **Zen grátis** (sem chave, login ou cartão, sem retenção de dados), **Gemini grátis** (chave do Google; o Google pode treinar com seus prompts), **Zen + Gemini** (Gemini só no maestro) ou **modelo local** escolhido pela sua placa (8 GB: ornith 9B · 12: gemma4 12B · 16: gpt-oss 20B · 24: muse-glimmer 30B · 32+: qwen3.8 27B + laguna). Comparativo: [docs/modelos-gratis.md](docs/modelos-gratis.md).
 
 ## Instalar
 
@@ -12,7 +12,7 @@ macOS / Linux:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DanielGodriNeto/aula-agentes-ia/main/install.sh | bash
 ```
-Forçar um modo: PowerShell `$env:AULA_MODE='free'` antes do comando; bash `... | AULA_MODE=free bash` (valores: `claude`, `cloud`, `free`, `local`). `AULA_EXTRAS=1` instala também as skills de `skills-extras/` (scrapling, break-ui, animate, diagnosing-bugs, verification-loop). Os exercícios vão para `~/aula-agentes-ia-exercicios`.
+Forçar um modo: PowerShell `$env:AULA_MODE='free'` antes do comando; bash `... | AULA_MODE=free bash` e pular a pergunta (valores: `claude`, `cloud`, `free`, `both`, `local`; `AULA_VRAM=16` força a faixa de placa). `AULA_EXTRAS=1` instala também as skills de `skills-extras/` (scrapling, break-ui, animate, diagnosing-bugs, verification-loop). Os exercícios vão para `~/aula-agentes-ia-exercicios`.
 
 Leia o script antes ([install.ps1](install.ps1), [install.sh](install.sh)): não pede chave, não usa `sudo`, faz backup de `~/.config/opencode` (modo Claude Code: só copia agentes/skills para `~/.claude`).
 
