@@ -95,8 +95,9 @@ async function textQ(env, prompt, def) {
 async function secret(env, prompt) {
   if (envRaw(env) !== undefined) return envRaw(env).trim();
   if (!TTY) return '';
-  muted = true; process.stdout.write(prompt);
-  const a = await question(''); muted = false; process.stdout.write('\n');
+  const p = question(prompt); // o prompt sai antes de silenciar; so o que voce digita fica oculto
+  muted = true;
+  const a = await p; muted = false; process.stdout.write('\n');
   return a.trim();
 }
 
@@ -105,10 +106,10 @@ function vramGB() {
   if (envRaw('AULA_VRAM') !== undefined) return Number(envRaw('AULA_VRAM')) || 0;
   const run = (c, a) => { try { return execFileSync(c, a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch { return ''; } };
   const n = run('nvidia-smi', ['--query-gpu=memory.total', '--format=csv,noheader,nounits']).split('\n')[0].trim();
-  if (n) return Math.floor(Number(n) / 1024);
+  if (n) return Math.round(Number(n) / 1024);
   if (IS_MAC && os.arch() === 'arm64') return Math.floor((os.totalmem() / 2 ** 30) * 0.7);
   if (IS_WIN) { // WMI limita a 4 GB; o registro tem o valor real
-    const ps = "Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0*' -ErrorAction SilentlyContinue | ForEach-Object { $_.'HardwareInformation.qwMemorySize' } | Where-Object { $_ } | ForEach-Object { [math]::Floor([double]$_ / 1GB) }";
+    const ps = "Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\0*' -ErrorAction SilentlyContinue | ForEach-Object { $_.'HardwareInformation.qwMemorySize' } | Where-Object { $_ } | ForEach-Object { [math]::Round([double]$_ / 1GB) }";
     const v = Math.max(0, ...run('powershell', ['-NoProfile', '-Command', ps]).split(/\s+/).map(Number).filter(Number.isFinite));
     if (v) return v;
   }
