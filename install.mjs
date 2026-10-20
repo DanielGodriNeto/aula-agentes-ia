@@ -155,6 +155,19 @@ async function validateGoogleKey(key) {
     return r.ok;
   } catch { return null; } // sem rede: nao da para validar
 }
+
+// Pede a chave ate valer; no terminal, oferece tentar de novo se faltar ou o Google recusar. '' = desistiu.
+async function askGeminiKey() {
+  const interactive = TTY && envRaw('AULA_GEMINI_KEY') === undefined;
+  for (;;) {
+    const key = await secret('AULA_GEMINI_KEY', 'Cole a chave do Gemini (crie em https://aistudio.google.com/apikey; pode colar com botao direito): ');
+    const ok = !key ? false : process.env.AULA_SKIP_VALIDATE === '1' ? true : await validateGoogleKey(key);
+    if (ok === null) { warn('Sem rede para validar a chave; vou guarda-la mesmo assim.'); return key; }
+    if (ok) { say('Chave validada.'); return key; }
+    warn(key ? 'O Google recusou a chave.' : 'Nenhuma chave foi digitada.');
+    if (!interactive || !(await yesNo('AULA_GEMINI_RETRY', 'Tentar colar a chave de novo?', true))) return '';
+  }
+}
 function saveGoogleKey(key) {
   const f = path.join(HOME, '.local', 'share', 'opencode', 'auth.json');
   let cur = {};
@@ -190,14 +203,9 @@ async function main() {
   if (cloud) {
     gemini = await yesNo('AULA_GEMINI', 'Usar o Gemini (Google) tambem? Bom: modelo mais forte no maestro. Ruim: precisa de conta Google e chave; no plano gratis o Google pode treinar com seus prompts.', false);
     if (gemini) {
-      geminiKey = await secret('AULA_GEMINI_KEY', 'Cole a chave do Gemini (crie em https://aistudio.google.com/apikey; pode colar com botao direito): ');
-      if (!geminiKey) { warn('Sem chave: seguindo so com Zen.'); gemini = false; }
-      else {
-        const ok = process.env.AULA_SKIP_VALIDATE === '1' ? true : await validateGoogleKey(geminiKey);
-        if (ok === false) { warn('O Google recusou a chave. Seguindo so com Zen (rode de novo para tentar outra).'); gemini = false; geminiKey = ''; }
-        else if (ok === null) warn('Sem rede para validar a chave; vou guarda-la mesmo assim.');
-        else say('Chave validada.');
-      }
+      geminiKey = await askGeminiKey();
+      gemini = Boolean(geminiKey);
+      if (!gemini) warn('Seguindo so com Zen.');
     }
   }
   let download = false;
