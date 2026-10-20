@@ -1,13 +1,14 @@
 # Aula de agentes de IA - instalador (Windows PowerShell 5.1+)
 # Uso:  irm https://raw.githubusercontent.com/DanielGodriNeto/aula-agentes-ia/main/install.ps1 | iex
-# Modos: claude (voce ja tem Claude Code) | cloud (Gemini gratis) | free (OpenCode Zen, sem Google) | local (GPU)
+# Modos: claude (voce ja tem Claude Code) | cloud (Gemini gratis) | free (OpenCode Zen, sem Google) | both (Gemini no maestro + Zen no resto) | local (GPU)
+# Sem AULA_MODE o instalador PERGUNTA qual voce prefere.
 # Com iex nao da para passar parametro: antes do comando rode  $env:AULA_MODE='free'  (ou cloud/local/claude).
 # Leia antes de rodar: este script nao pede nem guarda nenhuma chave. Ele so
 #   1) escolhe o modo (Claude Code > placa NVIDIA 12 GB+ > modelos gratis do OpenCode Zen),
 #   2) instala o OpenCode (e o Ollama no modo local), a menos que o modo seja claude,
 #   3) copia agentes e skills (com backup do que existir) e os exercicios para ~/aula-agentes-ia-exercicios.
 param(
-    [ValidateSet('auto','claude','cloud','free','local')][string]$Mode = $(if ($env:AULA_MODE) { $env:AULA_MODE } else { 'auto' }),
+    [ValidateSet('auto','claude','cloud','free','both','local')][string]$Mode = $(if ($env:AULA_MODE) { $env:AULA_MODE } else { 'auto' }),
     [string]$Ref = 'main'
 )
 $ErrorActionPreference = 'Stop'
@@ -37,17 +38,35 @@ function Install-Winget($id, $name) {
     $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
 }
 
-# 1. Modo
+# 1. Modo (pergunta quando AULA_MODE nao foi definido)
+function Ask-Mode($vram) {
+    $hasClaude = [bool](Get-Command claude -ErrorAction SilentlyContinue)
+    $default = if ($hasClaude) { 'claude' } elseif ($vram -ge 12) { 'local' } else { 'free' }
+    if (-not [Environment]::UserInteractive -or [Console]::IsInputRedirected) { return $default }
+    Write-Host ''
+    if ($hasClaude) {
+        Write-Host 'Detectei o Claude Code instalado. Voce tem assinatura (Pro/Max)? Ele e a melhor opcao: Opus, Sonnet e Haiku de verdade.'
+    } else { Write-Host 'Nao achei o Claude Code (a assinatura Pro e paga; sem ela, use uma das opcoes gratis abaixo).' }
+    Write-Host '  [1] Claude Code     bom: o time original (Opus/Sonnet/Haiku). ruim: precisa de assinatura paga e do claude instalado.'
+    Write-Host '  [2] Zen (gratis)    bom: sem conta, sem chave, sem cartao, sem guardar seus dados. ruim: limites nao publicados (sala cheia pode dar erro 429), modelos menores, lista muda.'
+    Write-Host '  [3] Gemini (gratis) bom: modelos mais fortes, limites claros no AI Studio. ruim: precisa de conta Google e chave; no plano gratis o Google pode TREINAR com seus prompts; cota diaria baixa.'
+    Write-Host '  [4] Zen + Gemini    bom: divide a carga (Gemini so no maestro, Zen no resto), duas cotas, se um cair o outro segura. ruim: configurar os dois. RECOMENDADO para quem tem conta Google.'
+    Write-Host "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: baixa 15-20 GB e exige placa de 12 GB+ (a sua: $vram GB)."
+    $map = @{ '1'='claude'; '2'='free'; '3'='cloud'; '4'='both'; '5'='local' }
+    $dnum = ($map.GetEnumerator() | Where-Object { $_.Value -eq $default }).Key
+    $a = Read-Host "Escolha [1-5] (Enter = $dnum)"
+    if ($map.ContainsKey($a)) { return $map[$a] } else { return $default }
+}
 $vram = Get-VramGB
 Say "Placa NVIDIA detectada: $vram GB de VRAM (0 = nenhuma)."
-if ($Mode -eq 'auto') {
-    $Mode = if (Get-Command claude -ErrorAction SilentlyContinue) { 'claude' } elseif ($vram -ge 12) { 'local' } else { 'free' }
-}
+if ($Mode -eq 'auto') { $Mode = Ask-Mode $vram }
 Say "Modo escolhido: $Mode"
 if ($Mode -eq 'local') {
     $localModel = if ($vram -ge 24) { $LocalBig } else { $LocalMid }
     $models = @{ ORCH = "ollama/$localModel"; MGR = "ollama/$localModel"; DEV = "ollama/$localModel" }
-} elseif ($Mode -eq 'free') { $models = $Free } else { $models = $Cloud }
+} elseif ($Mode -eq 'free') { $models = $Free }
+elseif ($Mode -eq 'both') { $models = @{ ORCH = $Cloud.ORCH; MGR = $Free.MGR; DEV = $Free.DEV } }
+else { $models = $Cloud }
 
 # 2. Baixa o repo (todos os modos) e separa os exercicios
 $tmp = Join-Path ([IO.Path]::GetTempPath()) "aula-agentes-$([guid]::NewGuid().ToString('N'))"
@@ -115,10 +134,11 @@ Remove-Item $tmp -Recurse -Force
 
 # 5. Fim
 Say 'Pronto. Ultimo passo:'
-if ($Mode -eq 'cloud') {
+if ($Mode -eq 'cloud' -or $Mode -eq 'both') {
     Write-Host '  1) Crie uma chave gratis em https://aistudio.google.com/apikey'
     Write-Host '  2) Rode:  opencode auth login   (escolha Google e cole a chave)'
     Write-Host '  AVISO: no plano gratis o Google pode usar seus prompts para treinar. Nao use codigo privado.'
+    if ($Mode -eq 'both') { Write-Host '  Modo duplo: o maestro usa Gemini; gerente e dev usam Zen (sem login).' }
     Write-Host '  Preferiu nao usar Google? Rode de novo com  $env:AULA_MODE=''free''  antes do comando.'
 } elseif ($Mode -eq 'free') {
     Write-Host '  Nao precisa de chave nem login: os modelos "-free" do OpenCode Zen funcionam direto (nos testes, sem conta).'

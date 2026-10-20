@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Aula de agentes de IA - instalador (macOS / Linux)
 # Uso:  curl -fsSL https://raw.githubusercontent.com/DanielGodriNeto/aula-agentes-ia/main/install.sh | bash
-# Modos: claude (voce ja tem Claude Code) | cloud (Gemini gratis) | free (OpenCode Zen, sem Google) | local (GPU)
+# Modos: claude | cloud (Gemini gratis) | free (OpenCode Zen) | both (Gemini no maestro + Zen no resto) | local (GPU)
+# Sem AULA_MODE o instalador PERGUNTA qual voce prefere.
 # Escolher:  curl -fsSL .../install.sh | AULA_MODE=free bash     (REF=main por padrao)
 # Leia antes de rodar: nao pede nem guarda chave. Escolhe o modo (Claude Code > GPU 12 GB+ > modelos gratis do OpenCode Zen),
 # instala OpenCode (e Ollama no modo local) e copia agentes, skills e exercicios (com backup).
@@ -29,17 +30,33 @@ vram_gb() {
 }
 
 VRAM=$(vram_gb); say "VRAM/memoria util detectada: ${VRAM} GB (0 = nenhuma)."
-if [ "$MODE" = auto ]; then
-  if command -v claude >/dev/null 2>&1; then MODE=claude
-  elif [ "$VRAM" -ge 12 ]; then MODE=local
-  else MODE=free; fi
-fi
-case "$MODE" in claude|cloud|free|local) ;; *) echo "AULA_MODE invalido: $MODE"; exit 1;; esac
+ask_mode() {
+  local has_claude=0 def n a
+  command -v claude >/dev/null 2>&1 && has_claude=1
+  if [ "$has_claude" = 1 ]; then def=claude; n=1; elif [ "$VRAM" -ge 12 ]; then def=local; n=5; else def=free; n=2; fi
+  if [ ! -r /dev/tty ]; then MODE=$def; return; fi   # curl | bash: le do terminal, nao do pipe
+  {
+    echo
+    if [ "$has_claude" = 1 ]; then echo "Detectei o Claude Code instalado. Voce tem assinatura (Pro/Max)? Ele e a melhor opcao: Opus, Sonnet e Haiku de verdade."
+    else echo "Nao achei o Claude Code (a assinatura Pro e paga; sem ela, use uma das opcoes gratis abaixo)."; fi
+    echo "  [1] Claude Code     bom: o time original (Opus/Sonnet/Haiku). ruim: precisa de assinatura paga e do claude instalado."
+    echo "  [2] Zen (gratis)    bom: sem conta, sem chave, sem cartao, sem guardar seus dados. ruim: limites nao publicados (sala cheia pode dar erro 429), modelos menores, lista muda."
+    echo "  [3] Gemini (gratis) bom: modelos mais fortes, limites claros no AI Studio. ruim: precisa de conta Google e chave; no plano gratis o Google pode TREINAR com seus prompts; cota diaria baixa."
+    echo "  [4] Zen + Gemini    bom: divide a carga (Gemini so no maestro, Zen no resto), duas cotas, se um cair o outro segura. ruim: configurar os dois. RECOMENDADO para quem tem conta Google."
+    echo "  [5] Local (GPU)     bom: privado, sem limite, offline. ruim: baixa 15-20 GB e exige placa de 12 GB+ (a sua: ${VRAM} GB)."
+    printf "Escolha [1-5] (Enter = %s): " "$n"
+  } > /dev/tty
+  read -r a < /dev/tty || a=""
+  case "${a:-$n}" in 1) MODE=claude;; 2) MODE=free;; 3) MODE=cloud;; 4) MODE=both;; 5) MODE=local;; *) MODE=$def;; esac
+}
+[ "$MODE" = auto ] && ask_mode
+case "$MODE" in claude|cloud|free|both|local) ;; *) echo "AULA_MODE invalido: $MODE"; exit 1;; esac
 say "Modo escolhido: $MODE"
 LOCAL_MODEL=""
 case "$MODE" in
   local) LOCAL_MODEL=$([ "$VRAM" -ge 24 ] && echo "$LOCAL_BIG" || echo "$LOCAL_MID"); ORCH="ollama/$LOCAL_MODEL"; MGR="$ORCH"; DEV="$ORCH";;
   free)  ORCH="$FREE_ORCH"; MGR="$FREE_MGR"; DEV="$FREE_DEV";;
+  both)  ORCH="$CLOUD_ORCH"; MGR="$FREE_MGR"; DEV="$FREE_DEV";;
   *)     ORCH="$CLOUD_ORCH"; MGR="$CLOUD_MGR"; DEV="$CLOUD_DEV";;
 esac
 
@@ -83,7 +100,8 @@ fill "$TMP/config/opencode.$CFG.json" > "$DEST/opencode.json"
 
 say "Pronto. Ultimo passo:"
 case "$MODE" in
-  cloud)
+  cloud|both)
+    [ "$MODE" = both ] && echo "  Modo duplo: o maestro usa Gemini; gerente e dev usam Zen (sem login)."
     echo "  1) Crie uma chave gratis em https://aistudio.google.com/apikey"
     echo "  2) Rode:  opencode auth login   (escolha Google e cole a chave)"
     echo "  AVISO: no plano gratis o Google pode usar seus prompts para treinar. Nao use codigo privado."
